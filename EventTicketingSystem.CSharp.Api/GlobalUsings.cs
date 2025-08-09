@@ -35,4 +35,4 @@ global using Microsoft.OpenApi.Models;
 global using System.Text;
 global using EventTicketingSystem.CSharp.Domain.Features.Transaction;
 global using EventTicketingSystem.CSharp.Domain.Models.Features.Transaction;
-
+global using EventTicketingSystem.CSharp.Shared.Enums;

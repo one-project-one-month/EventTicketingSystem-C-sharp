@@ -43,7 +43,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<TblVenuetype> TblVenuetypes { get; set; }
 
-    public virtual DbSet<TblVerification> TblVerifications { get; set; }
+    public virtual DbSet<TblVerification> TblVerifications { get; set; }    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
