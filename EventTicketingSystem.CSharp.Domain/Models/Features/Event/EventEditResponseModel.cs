@@ -33,9 +33,9 @@ public class EventEditModel
     
     public string? Address { get; set; }
 
-    public DateTime Startdate { get; set; }
+    public string Startdate { get; set; }
 
-    public DateTime Enddate { get; set; }
+    public string Enddate { get; set; }
 
     public int Totalticketquantity { get; set; }
     
@@ -51,8 +51,8 @@ public class EventEditModel
         {
             Eventcode = tblEvent.Eventcode,
             Eventname = tblEvent.Eventname,
-            Startdate = tblEvent.Startdate,
-            Enddate = tblEvent.Enddate,
+            Startdate = tblEvent.Startdate.ToDateTimeFormat(),
+            Enddate = tblEvent.Enddate.ToDateTimeFormat(),
             Isactive = tblEvent.Isactive,
             Eventstatus = tblEvent.Eventstatus,
             Totalticketquantity = tblEvent.Totalticketquantity,
