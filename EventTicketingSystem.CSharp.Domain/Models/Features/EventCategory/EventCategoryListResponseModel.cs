@@ -15,7 +15,7 @@ public class EventCategoryListModel
 
     public string? Createdby { get; set; }
 
-    public DateTime? Createdat { get; set; }
+    public string Createdat { get; set; }
 
     public static EventCategoryListModel FromTblCategory(TblEventcategory category)
     {
@@ -25,7 +25,7 @@ public class EventCategoryListModel
            EventCategorycode = category.Eventcategorycode,
            Categoryname = category.Categoryname,
            Createdby = category.Createdby,
-           Createdat = category.Createdat
+           Createdat = category.Createdat.ToDateTimeFormat()
         };
     }
 }
