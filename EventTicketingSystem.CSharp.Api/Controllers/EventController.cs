@@ -51,4 +51,16 @@ public class EventController : ControllerBase
         var data = await _blEvent.Delete(eventCode);
         return Ok(data);
     }
+    
+    [HttpGet("EventStatusOptions")]
+    [Authorize]
+    public IActionResult GetEventStatusOptions()
+    {
+        var result = _blEvent.GetEventStatusOptions(); 
+
+        if (!result.IsSuccess)
+            return BadRequest(result); 
+
+        return Ok(result);
+    }
 }

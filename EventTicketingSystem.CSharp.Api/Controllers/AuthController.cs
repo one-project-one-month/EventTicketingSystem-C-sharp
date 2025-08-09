@@ -26,6 +26,32 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+    
+    [HttpPost("ChangePassword")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestModel request)
+    {
+        var result = await _blAuth.ChangePassword(request);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPost("ChangePasswordFirstLogin")]
+    [Authorize]
+    public async Task<IActionResult> ChangePasswordFirstLogin([FromBody] ChangePasswordRequestModel request)
+    {
+        var result = await _blAuth.ChangePasswordFromFirstLogin(request);
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
 
     [HttpPost("RefreshToken")]
     [AllowAnonymous]

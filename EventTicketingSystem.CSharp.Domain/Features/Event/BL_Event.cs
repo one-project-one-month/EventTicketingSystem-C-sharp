@@ -18,7 +18,7 @@ public class BL_Event
     {
         return await _daService.Edit(eventCode);
     }
-
+    
     public async Task<Result<EventCreateResponseModel>> Create(EventCreateRequestModel requestModel)
     {
         return await _daService.Create(requestModel);
@@ -32,5 +32,17 @@ public class BL_Event
     public async Task<Result<EventDeleteResponseModel>> Delete(string eventCode)
     {
         return await _daService.Delete(eventCode);
+    }
+    
+    public Result<EventStatusOptionsModel> GetEventStatusOptions()
+    {
+        var options = _daService.GetEventStatusOptions(); 
+
+        var model = new EventStatusOptionsModel
+        {
+            EventStatusOptions = options
+        };
+
+        return Result<EventStatusOptionsModel>.Success(model, "Retrieved Event Status Options Successfully.");
     }
 }

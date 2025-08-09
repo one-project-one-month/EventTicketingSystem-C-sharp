@@ -13,10 +13,11 @@ public class EventListModel
     public string? Eventname { get; set; }
     
     public string? Uniquename { get; set; }
+    
+    public string? Businessownername { get; set; }
 
     public bool? Isactive { get; set; }
     
-    public string? Businessownername { get; set; }
 
     public static EventListModel FromTblEvent(TblEvent tblEvent)
     {
