@@ -11,3 +11,4 @@ global using System.Security.Cryptography;
 global using System.Text;
 global using FluentEmail.Core;
 global using Effortless.Net.Encryption;
+global using System.Globalization;

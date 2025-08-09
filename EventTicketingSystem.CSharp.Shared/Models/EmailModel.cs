@@ -8,3 +8,10 @@ public class EmailModel
 
     public string Body { get; set; }
 }
+
+public class AttachmentEmailModel : EmailModel
+{
+    public string? RecipientName { get; set; }
+
+    public List<string>? AttachmentPaths { get; set; }
+}

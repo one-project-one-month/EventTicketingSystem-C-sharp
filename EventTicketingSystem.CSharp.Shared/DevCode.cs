@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace EventTicketingSystem.CSharp.Shared;
+﻿namespace EventTicketingSystem.CSharp.Shared;
 
 public static partial class DevCode
 {

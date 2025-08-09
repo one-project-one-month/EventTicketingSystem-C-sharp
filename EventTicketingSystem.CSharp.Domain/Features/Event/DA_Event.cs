@@ -213,7 +213,7 @@ public class DA_Event : AuthorizationService
                 Uniquename = requestModel.Uniquename,
                 Sequenceno = "000000",
                 Sequencedate = DateTime.Now,
-                Sequencetype = EnumSequenceType.Event.ToString(),
+                Sequencetype = EnumSequenceType.EventTicket.ToString(),
                 Eventcode = newEvent.Eventcode,
                 Deleteflag = false
             };

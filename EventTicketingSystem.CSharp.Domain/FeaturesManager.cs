@@ -1,3 +1,5 @@
+using EventTicketingSystem.CSharp.Domain.Features.Transaction;
+
 namespace EventTicketingSystem.CSharp.Domain;
 
 public static class FeaturesManager
@@ -78,6 +80,7 @@ public static class FeaturesManager
         services.AddScoped<BL_Venue>();
         services.AddScoped<BL_VenueType>();
         services.AddScoped<BL_VerificationCode>();
+        services.AddScoped<BL_Transaction>();
 
         return services;
     }
@@ -98,6 +101,7 @@ public static class FeaturesManager
         services.AddScoped<DA_Venue>();
         services.AddScoped<DA_VenueType>();
         services.AddScoped<DA_VerificationCode>();
+        services.AddScoped<DA_Transaction>();
 
         return services;
     }

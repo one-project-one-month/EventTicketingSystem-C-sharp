@@ -13,6 +13,8 @@ public partial class TblTicket
 
     public bool Isused { get; set; }
 
+    public bool Soldout { get; set; }
+
     public string Createdby { get; set; } = null!;
 
     public DateTime Createdat { get; set; }

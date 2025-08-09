@@ -21,20 +21,18 @@ public class QrCodeController : ControllerBase
     }
 
     [HttpGet("{qrString}")]
-    public async Task<IActionResult> Check(string qrString)
+    public IActionResult Check(string qrString)
     {
         if (string.IsNullOrEmpty(qrString))
         {
             return BadRequest("QR string cannot be null or empty");
         }
 
-        var result = await _bl_QrCode.Check(qrString);
+        var result = _bl_QrCode.Check(qrString);
         if (result.IsError)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, result.Message);
         }
         return Ok(result.Data);
     }
-
-
 }

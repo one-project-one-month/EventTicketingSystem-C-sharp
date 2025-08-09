@@ -238,7 +238,7 @@ public class DA_VerificationCode : AuthorizationService
                 Body = EmailBodyTemplates.Otp.Replace("(@otp)", otp)
             };
 
-            var result = await _emailService.SendEmailVerification(emailTemplate);
+            var result = await _emailService.SendVerificationEmail(emailTemplate);
             if (result is false)
             {
                 return Result<VCResponseModel>.SystemError("Failed to send verification code via email.");

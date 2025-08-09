@@ -9,6 +9,12 @@ public partial class TblTransaction
 
     public string Transactioncode { get; set; } = null!;
 
+    public string Fullname { get; set; } = null!;
+
+    public string Gender { get; set; } = null!;
+
+    public string Phone { get; set; } = null!;
+
     public string Email { get; set; } = null!;
 
     public string Eventcode { get; set; } = null!;

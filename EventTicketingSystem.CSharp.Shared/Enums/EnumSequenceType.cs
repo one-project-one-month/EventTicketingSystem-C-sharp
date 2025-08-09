@@ -3,6 +3,6 @@
 public enum EnumSequenceType
 {
     Table,
-    Event,
+    EventTicket,
     Transaction,
 }

@@ -98,7 +98,11 @@ public class DA_TicketType : AuthorizationService
     }
 
     public async Task<Result<TicketTypeCreateResponseModel>> Create(TicketTypeCreateRequestModel requestModel)
-    {        
+    {
+        if (requestModel.EventCode.IsNullOrEmpty())
+        {
+            return Result<TicketTypeCreateResponseModel>.ValidationError("Event Name cannot be Empty!");
+        }
         if (requestModel.TicketTypeName.IsNullOrEmpty())
         {
             return Result<TicketTypeCreateResponseModel>.ValidationError("Ticket Type name cannot be Empty!");
@@ -163,24 +167,51 @@ public class DA_TicketType : AuthorizationService
             await _db.SaveAndDetachAsync();
 
 
-            var ticketList = new List<TblTicket>();
-            for (int i = 0; i < requestModel.TicketQuantity; i++)
+            //for (int i = 0; i < requestModel.TicketQuantity; i++)
+            //{
+            //    var ticket = new TblTicket
+            //    {
+            //        Ticketid = GenerateUlid(),
+            //        Ticketcode = await _commonService.GenerateTicketSequence(eventInfo!.Uniquename, eventInfo.Eventcode),
+            //        Isused = false,
+            //        Ticketpricecode = ticketprice.Ticketpricecode,
+            //        Createdat = DateTime.Now,
+            //        Createdby = CurrentUserId,
+            //        Deleteflag = false
+            //    };
+            //    ticketList.Add(ticket);
+            //}
+
+            var eventInfo = await _db.TblEvents
+                        .FirstOrDefaultAsync(
+                            x => x.Eventcode == requestModel.EventCode &&
+                            x.Deleteflag == false
+                        );
+            if (eventInfo is null)
             {
-                var ticket = new TblTicket
-                {
-                    Ticketid = GenerateUlid(),
-                    Ticketcode = await _commonService.GenerateSequenceCode(EnumTableUniqueName.Tbl_Ticket),
-                    Isused = false,
-                    Ticketpricecode = ticketprice.Ticketpricecode,
-                    Createdat = DateTime.Now,
-                    Createdby = CurrentUserId,
-                    Deleteflag = false
-                };
-                ticketList.Add(ticket);
+                return Result<TicketTypeCreateResponseModel>.NotFoundError("No Event Found.");
             }
 
-            await _db.TblTickets.AddRangeAsync(ticketList);
-            await _db.SaveAndDetachAsync();
+            var codes = await _commonService.GenerateTicketSequenceCode(eventInfo.Uniquename, eventInfo.Eventcode, requestModel.TicketQuantity);
+
+            var now = DateTime.Now;
+
+            var ticketList = codes.Select(code => new TblTicket
+            {
+                Ticketid = GenerateUlid(),
+                Ticketcode = code,
+                Isused = false,
+                Soldout = false,
+                Ticketpricecode = ticketprice.Ticketpricecode,
+                Createdat = now,
+                Createdby = CurrentUserId,
+                Deleteflag = false
+            }).ToList();
+
+            await _db.BulkInsertAsync(ticketList);
+
+            //await _db.TblTickets.AddRangeAsync(ticketList);
+            //await _db.SaveAndDetachAsync();
 
             return Result<TicketTypeCreateResponseModel>.Success("Ticket Type and tickets are created successfully!");
         }

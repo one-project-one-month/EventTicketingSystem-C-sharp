@@ -3,4 +3,6 @@
 public class QrGenerateResponseModel
 {
     public string QrString { get; set; }
+
+    public string FilePath { get; set; }
 }

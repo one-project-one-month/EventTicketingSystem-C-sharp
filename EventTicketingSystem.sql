@@ -20,24 +20,6 @@ create table public.tbl_businessemail
 alter table public.tbl_businessemail
     owner to postgres;
 
-create table public.tbl_ticket
-(
-    ticketid        varchar   not null
-        constraint tbl_ticket_pk
-            primary key,
-    ticketcode      varchar   not null,
-    ticketpricecode varchar   not null,
-    isused          boolean   not null,
-    createdby       varchar   not null,
-    createdat       timestamp not null,
-    modifiedby      varchar,
-    modifiedat      timestamp,
-    deleteflag      boolean   not null
-);
-
-alter table public.tbl_ticket
-    owner to postgres;
-
 create table public.tbl_ticketprice
 (
     ticketpriceid   varchar        not null
@@ -73,28 +55,6 @@ create table public.tbl_tickettype
 );
 
 alter table public.tbl_tickettype
-    owner to postgres;
-
-create table public.tbl_transaction
-(
-    transactionid   varchar        not null
-        constraint tbl_transaction_pk
-            primary key,
-    transactioncode varchar        not null,
-    email           varchar        not null,
-    eventcode       varchar        not null,
-    status          varchar        not null,
-    paymenttype     varchar        not null,
-    transactiondate timestamp      not null,
-    totalamount     numeric(20, 2) not null,
-    createdby       varchar        not null,
-    createdat       timestamp      not null,
-    modifiedby      varchar,
-    modifiedat      timestamp,
-    deleteflag      boolean        not null
-);
-
-alter table public.tbl_transaction
     owner to postgres;
 
 create table public.tbl_venuetype
@@ -300,6 +260,50 @@ create table public.tbl_eventcategory
 alter table public.tbl_eventcategory
     owner to postgres;
 
+create table public.tbl_transaction
+(
+    transactionid   varchar        not null
+        constraint tbl_transaction_pk
+            primary key,
+    transactioncode varchar        not null,
+    fullname        varchar        not null,
+    gender          varchar        not null,
+    phone           varchar        not null,
+    email           varchar        not null,
+    eventcode       varchar        not null,
+    status          varchar        not null,
+    paymenttype     varchar        not null,
+    transactiondate timestamp      not null,
+    totalamount     numeric(20, 2) not null,
+    createdby       varchar        not null,
+    createdat       timestamp      not null,
+    modifiedby      varchar,
+    modifiedat      timestamp,
+    deleteflag      boolean        not null
+);
+
+alter table public.tbl_transaction
+    owner to postgres;
+
+create table public.tbl_ticket
+(
+    ticketid        varchar   not null
+        constraint tbl_ticket_pk
+            primary key,
+    ticketcode      varchar   not null,
+    ticketpricecode varchar   not null,
+    isused          boolean   not null,
+    soldout         boolean   not null,
+    createdby       varchar   not null,
+    createdat       timestamp not null,
+    modifiedby      varchar,
+    modifiedat      timestamp,
+    deleteflag      boolean   not null
+);
+
+alter table public.tbl_ticket
+    owner to postgres;
+
 create function public.sp_sequencecode(id integer) returns character varying
     language plpgsql
 as
@@ -327,51 +331,73 @@ $$;
 
 alter function public.sp_sequencecode(integer) owner to postgres;
 
+create function public.sp_sequencecode_bulk(id integer, quantity integer)
+    returns TABLE(sequence_number character varying)
+    language plpgsql
+as
+$$
+DECLARE
+    current_val int;
+    new_val int;
+    i int := 1;
+BEGIN
+    SELECT sequenceno::int INTO current_val
+    FROM tbl_sequence
+    WHERE sequenceid = id
+      AND deleteflag = false
+    FOR UPDATE;
+
+    IF current_val IS NULL THEN
+        RAISE EXCEPTION 'Sequence not found or deleted';
+    END IF;
+
+    new_val := current_val + quantity;
+
+    UPDATE tbl_sequence
+    SET sequenceno = LPAD(new_val::text, 6, '0'),
+        sequencedate = now()
+    WHERE sequenceid = id
+      AND deleteflag = false;
+
+    WHILE i <= quantity LOOP
+        sequence_number := LPAD((current_val + i)::text, 6, '0');
+        RETURN NEXT;
+        i := i + 1;
+    END LOOP;
+
+END;
+$$;
+
+alter function public.sp_sequencecode_bulk(integer, integer) owner to postgres;
+
 create function public.sp_ticket_info(p_ticketcode character varying)
-    returns TABLE(ticketpricecode character varying, ticketprice numeric, tickettypecode character varying, eventcode character varying, startdate timestamp without time zone, enddate timestamp without time zone, eventname character varying, tickettypename character varying, venuename character varying)
+    returns TABLE(ticketpricecode character varying, ticketprice numeric, tickettypecode character varying, eventcode character varying, startdate timestamp with time zone, enddate timestamp with time zone, eventname character varying, tickettypename character varying, venuename character varying)
     language plpgsql
 as
 $$
 BEGIN
     RETURN QUERY
-    SELECT
-        tp.ticketpricecode,
-        tp.ticketprice,
-        tp.tickettypecode,
-        tp.eventcode,
-        e.startdate,
-        e.enddate,
-        e.eventname,
-        tt.tickettypename,
-        v.venuename
-    FROM
-        tbl_ticket t
-        INNER JOIN tbl_ticketprice tp ON t.ticketpricecode = tp.ticketpricecode
-        INNER JOIN tbl_event e ON tp.eventcode = e.eventcode
-        INNER JOIN tbl_tickettype tt ON tp.tickettypecode = tt.tickettypecode
-        INNER JOIN tbl_venue v ON e.venuecode = v.venuecode
-    WHERE
-        t.ticketcode = p_ticketcode
-        AND t.deleteflag = false
-        AND tp.deleteflag = false
-        AND e.deleteflag = false
-        AND tt.deleteflag = false
-        AND v.deleteflag = false;
+        SELECT tp.ticketpricecode,
+               tp.ticketprice,
+               tp.tickettypecode,
+               tt.eventcode,
+               e.startdate,
+               e.enddate,
+               e.eventname,
+               tt.tickettypename,
+               v.venuename
+        FROM tbl_ticket t
+                 INNER JOIN tbl_ticketprice tp ON t.ticketpricecode = tp.ticketpricecode
+                 INNER JOIN tbl_tickettype tt ON tp.tickettypecode = tt.tickettypecode
+                 INNER JOIN tbl_event e ON tt.eventcode = e.eventcode
+                 INNER JOIN tbl_venue v ON e.venuecode = v.venuecode
+        WHERE t.ticketcode = p_ticketcode
+          AND t.deleteflag = false
+          AND tp.deleteflag = false
+          AND e.deleteflag = false
+          AND tt.deleteflag = false
+          AND v.deleteflag = false;
 END;
 $$;
 
 alter function public.sp_ticket_info(varchar) owner to postgres;
-
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('EC', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Event Category
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('BO', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Business Owner
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('AD', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Admin
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('TT', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Ticket Type
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('VT', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Venue Type
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('TC', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Ticket
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('TI', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Transaction Ticket
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('TR', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Transaction
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('VE', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Venue
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('EV', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Event
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('VC', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Verification
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('TP', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Ticket Price
-INSERT INTO public.tbl_sequence (uniquename, sequenceno, sequencedate, sequencetype, eventcode, deleteflag) VALUES ('BE', '000000', '2025-07-17 03:34:58.000000', 'Table', null, false); -- Business Email

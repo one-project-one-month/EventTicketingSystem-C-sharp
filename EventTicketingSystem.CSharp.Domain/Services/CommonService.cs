@@ -22,7 +22,7 @@ public class CommonService
             Uniquename = uniqueName,
             Sequenceno = "0000000",
             Sequencedate = DateTime.Now,
-            Sequencetype = EnumSequenceType.Event.ToString(),
+            Sequencetype = EnumSequenceType.EventTicket.ToString(),
             Eventcode = eventCode,
             Deleteflag = false
         };
@@ -73,17 +73,46 @@ public class CommonService
         return sequnceCode;
     }
 
-    #endregion
-
-    #region Generate Event Sequence Code
-
-    public async Task<string> GenerateEventSequenceCode(string uniqueName, string eventCode)
+    public async Task<string> GenerateTransactionSequenceCode(EnumTableUniqueName uniqueName)
     {
         var sequence = await _db.TblSequences
                         .AsNoTracking()
                         .Where(
+                            x => x.Uniquename == uniqueName.GetEnumDescription() &&
+                            x.Sequencetype == EnumSequenceType.Table.ToString() &&
+                            x.Deleteflag == false)
+                        .FirstOrDefaultAsync();
+
+        if (sequence is null)
+        {
+            throw new Exception("Sequence not found for the given event code.");
+        }
+
+        var date = $"{sequence.Sequencedate:yyyyMMdd}";
+        var sequenceCodePrefix = $"{sequence.Uniquename}{date}";
+
+        var param = new { id = sequence.Sequenceid };
+
+        string? seqNo = await _dapper.QueryStoredProcedureFirstOrDefault<string>(Queries.sp_sequencecode, param);
+
+        string sequenceNo = seqNo ?? throw new Exception("Sequence not found.");
+
+        sequenceCodePrefix += sequenceNo;
+
+        return sequenceCodePrefix;
+    }
+
+    #endregion
+
+    #region Generate Ticket Sequence Code
+
+    public async Task<List<string>> GenerateTicketSequenceCode(string uniqueName, string eventCode, int quantity)
+    {
+        var sequence = await _db.TblSequences
+                        .AsNoTracking()
+                        .Where(     
                             x => x.Uniquename == uniqueName &&
-                            x.Sequencetype == EnumSequenceType.Event.ToString() &&
+                            x.Sequencetype == EnumSequenceType.EventTicket.ToString() &&
                             x.Eventcode == eventCode &&
                             x.Deleteflag == false)
                         .FirstOrDefaultAsync();
@@ -93,24 +122,23 @@ public class CommonService
             throw new Exception("Sequence not found for the given event code.");
         }
 
-        var sequenceCode = $"{sequence.Uniquename}";
+        var param = new { id = sequence.Sequenceid, qty = quantity };
 
-        var param = new { id = sequence.Sequenceid };
+        var seqNos = await _dapper.QueryStoredProcedureAsync<string>(Queries.sp_sequencecode_bulk, param);
 
-        string? seqNo = await _dapper.QueryStoredProcedureFirstOrDefault<string>(Queries.sp_sequencecode, param);
+        if (seqNos is null || !seqNos.Any())
+        {
+            throw new InvalidOperationException("No sequence numbers returned.");
+        }
 
-        string sequenceNo = seqNo ?? throw new Exception("Sequence not found.");
-
-        sequenceCode += sequenceNo;
-
-        return sequenceCode;
+        return seqNos.Select(sn => $"{sequence.Uniquename}{sn}").ToList();
     }
 
     #endregion
 
     #region Generate Transaction Sequence Code
 
-    public async Task<string> GenerateTransactionSequenceCode(string uniqueName, string eventCode)
+    public async Task<List<string>> GenerateTransactionSequenceCode(string uniqueName, string eventCode, int quantity)
     {
         var sequence = await _db.TblSequences
                         .AsNoTracking()
@@ -126,18 +154,18 @@ public class CommonService
             throw new Exception("Sequence not found for the given event code.");
         }
 
-        var date = $"{sequence.Sequencedate.Year}{sequence.Sequencedate.Month}{sequence.Sequencedate.Day}";
-        var sequenceCode = $"{sequence.Uniquename}{date}";
+        var date = $"{sequence.Sequencedate:yyyyMMdd}";
+        var sequenceCodePrefix = $"{sequence.Uniquename}{date}";
 
-        var param = new { id = sequence.Sequenceid };
+        var param = new { id = sequence.Sequenceid, qty = quantity };
 
-        string? seqNo = await _dapper.QueryStoredProcedureFirstOrDefault<string>(Queries.sp_sequencecode, param);
+        var seqNos = await _dapper.QueryStoredProcedureAsync<string>(Queries.sp_sequencecode_bulk, param);
+        if (seqNos is null || !seqNos.Any())
+        {
+            throw new Exception("Sequence not found.");
+        }
 
-        string sequenceNo = seqNo ?? throw new Exception("Sequence not found.");
-
-        sequenceCode += sequenceNo;
-
-        return sequenceCode;
+        return seqNos.Select(sn => $"{sequenceCodePrefix}{sn}").ToList();
     }
 
     #endregion
@@ -215,7 +243,7 @@ public class CommonService
                 .Where(x => !string.IsNullOrEmpty(x))
                 .ToListAsync();
 
-            DeleteExtraFilesForDirectory(EnumDirectory.ProfileImage, adminProfilesInDb);
+            DeleteExtraFilesForDirectory(EnumDirectory.ProfileImage, adminProfilesInDb!);
 
             return false;
         }

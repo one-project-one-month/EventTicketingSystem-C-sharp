@@ -1,18 +1,8 @@
-﻿using EventTicketingSystem.CSharp.Domain.Models.Features.QR;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
-using ZXing;
-using ZXing.Common;
-using ZXing.Rendering;
-
-namespace EventTicketingSystem.CSharp.Domain.Features.QR;
+﻿namespace EventTicketingSystem.CSharp.Domain.Features.QR;
 
 public class BL_QrCode
 {
     private readonly DA_QrCode _da_QrCode;
-
-    private const BarcodeFormat DEFAULT_BARCODE_FORMAT = BarcodeFormat.QR_CODE;
     private string QR_DIR_NAME = EnumDirectory.QrImage.ToString();
     private const int WIDTH = 300;
     private const int HEIGHT = 300;
@@ -25,6 +15,8 @@ public class BL_QrCode
 
     public async Task<Result<QrGenerateResponseModel>> Generate(QrGenerateRequestModel requestModel)
     {
+        var model = new QrGenerateResponseModel();
+
         var response = await _da_QrCode.GenerateQr(requestModel);
 
         if (response.IsError)
@@ -37,11 +29,13 @@ public class BL_QrCode
 
         SaveQrImage(response.Data.QrString, outputFileName);
 
+        response.Data.FilePath = outputFileName;
+
         response.Message = "QR code generated successfully.";
         return response;
     }
 
-    public async Task<Result<QrCheckResponseModel>> Check(string qrString)
+    public Result<QrCheckResponseModel> Check(string qrString)
     {
         var response = _da_QrCode.CheckQr(qrString);
         if (response.IsError)
@@ -102,5 +96,4 @@ public class BL_QrCode
             pixelData.Height
         );
     }
-
 }

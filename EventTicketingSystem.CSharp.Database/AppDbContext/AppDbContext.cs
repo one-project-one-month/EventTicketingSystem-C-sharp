@@ -335,6 +335,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Modifiedby)
                 .HasColumnType("character varying")
                 .HasColumnName("modifiedby");
+            entity.Property(e => e.Soldout).HasColumnName("soldout");
             entity.Property(e => e.Ticketcode)
                 .HasColumnType("character varying")
                 .HasColumnName("ticketcode");
@@ -432,6 +433,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Eventcode)
                 .HasColumnType("character varying")
                 .HasColumnName("eventcode");
+            entity.Property(e => e.Fullname)
+                .HasColumnType("character varying")
+                .HasColumnName("fullname");
+            entity.Property(e => e.Gender)
+                .HasColumnType("character varying")
+                .HasColumnName("gender");
             entity.Property(e => e.Modifiedat)
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("modifiedat");
@@ -441,6 +448,9 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Paymenttype)
                 .HasColumnType("character varying")
                 .HasColumnName("paymenttype");
+            entity.Property(e => e.Phone)
+                .HasColumnType("character varying")
+                .HasColumnName("phone");
             entity.Property(e => e.Status)
                 .HasColumnType("character varying")
                 .HasColumnName("status");

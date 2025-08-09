@@ -26,6 +26,7 @@ public class DA_Ticket : AuthorizationService
                 Ticketcode = await _commonService.GenerateSequenceCode(EnumTableUniqueName.Tbl_Ticket),
                 Ticketpricecode = requestModel.Ticketpricecode,
                 Isused = false,
+                Soldout = false,
                 Createdby = CurrentUserId,
                 Createdat = DateTime.Now,
                 Deleteflag = false
