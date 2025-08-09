@@ -1,6 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 
-namespace EventTicketingSystem.CSharp.Shared.Extensions;
+namespace EventTicketingSystem.CSharp.Shared.Services;
 
 public abstract class AuthorizationService
 {
@@ -14,7 +14,10 @@ public abstract class AuthorizationService
     private ApiTokenModel? GetUser()
     {
         var bearerToken = _contextAccessor.HttpContext?.Request.Headers["Authorization"].ToString();
-        if (string.IsNullOrEmpty(bearerToken) || !bearerToken.StartsWith("Bearer ")) return null;
+        if (string.IsNullOrEmpty(bearerToken) || !bearerToken.StartsWith("Bearer "))
+        {
+            return null;
+        }
 
         var token = bearerToken["Bearer ".Length..];
 
@@ -25,16 +28,11 @@ public abstract class AuthorizationService
             var jwtToken = handler.ReadJwtToken(token); 
 
             var userId = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
-            var sessionId = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
 
-            if (userId == null || sessionId == null)
+            if (userId is null)
                 return null;
 
-            return new ApiTokenModel
-            {
-                UserId = userId,
-                SessionId = sessionId
-            };
+            return new ApiTokenModel{ UserId = userId };
         }
         catch
         {
@@ -43,12 +41,9 @@ public abstract class AuthorizationService
     }
 
     protected string CurrentUserId => GetUser()?.UserId ?? string.Empty;
-    protected string SessionId => GetUser()?.SessionId ?? string.Empty;
-
 }
 
 public class ApiTokenModel
 {
     public string? UserId { get; set; } = "";
-    public string? SessionId { get; set; } = "";
 }

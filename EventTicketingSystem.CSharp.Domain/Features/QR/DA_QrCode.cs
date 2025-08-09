@@ -62,12 +62,14 @@ public class DA_QrCode
             return Result<QrCheckResponseModel>.SystemError("Invalid QR string format.");
         }
 
+        var gateOpenTime = response.EventTimeFrom.ToDateTime() - TimeSpan.FromMinutes(30);
+
         response.EventName = qrParts[0];
         response.EventCode = qrParts[1];
         response.EventDate = qrParts[2];
         response.EventTimeFrom = qrParts[3];
         response.EventTimeTo = qrParts[4];
-        response.GateOpenTime = qrParts[5];
+        response.GateOpenTime = gateOpenTime?.ToString("hh:mm tt")!;
         response.TicketCode = qrParts[6];
         response.TicketPrice = qrParts[7];
         response.TicketType = qrParts[8];

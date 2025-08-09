@@ -1,3 +1,6 @@
+using EventTicketingSystem.CSharp.Domain.Models.Features.VenueType;
+using EventTicketingSystem.CSharp.Domain.Services;
+
 namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Venue")]
@@ -6,9 +9,12 @@ namespace EventTicketingSystem.CSharp.Api.Controllers;
 public class VenueController : ControllerBase
 {   
     private readonly BL_Venue _blVenue;
-    public VenueController(BL_Venue blService)
+    private readonly ExportService _exportService;
+
+    public VenueController(BL_Venue blService, ExportService exportService)
     {
         _blVenue = blService;
+        _exportService = exportService;
     }
 
     [HttpGet("List")]
@@ -50,5 +56,35 @@ public class VenueController : ControllerBase
     {
         var data = await _blVenue.Delete(venueCode);
         return Ok(data);
+    }
+
+
+    [HttpPost("Export")]
+    public async Task<IActionResult> Export(VenueExportRequestModle requestModel)
+    {
+        try
+        {
+            return requestModel.Format.ToLower() switch
+            {
+                "csv" => File(
+                    await _exportService.ExportToCsv(requestModel.VenueList),
+                    "text/csv",
+                    "Venue.csv"),
+                "xlsx" or "excel" => File(
+                    await _exportService.ExportToExcel(requestModel.VenueList, "Venue"),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Venue.xlsx"),
+                "pdf" => File(
+                    await _exportService.ExportToPdf(requestModel.VenueList, "Venue"),
+                    "application/pdf",
+                    "Venue.pdf"),
+
+                _ => BadRequest("Unsupported format. Use csv, xlsx, or pdf")
+            };
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Export failed: {ex.Message}");
+        }
     }
 }

@@ -1,10 +1,4 @@
-﻿using ClosedXML.Excel;
-using CsvHelper;
-using CsvHelper.Configuration;
-using SkiaSharp;
-using System.Globalization;
-
-namespace EventTicketingSystem.CSharp.Domain.Services;
+﻿namespace EventTicketingSystem.CSharp.Domain.Services;
 
 public class ExportService
 {
@@ -17,8 +11,7 @@ public class ExportService
         {
             Delimiter = ",",
             HasHeaderRecord = true,
-            MissingFieldFound = null,
-            //BadDataFound = context => { } // Handle bad data gracefully
+            MissingFieldFound = null
         };
 
         using var memoryStream = new MemoryStream();

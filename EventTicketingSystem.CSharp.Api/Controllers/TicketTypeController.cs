@@ -6,10 +6,12 @@
 public class TicketTypeController : ControllerBase
 {
     private readonly BL_TicketType _bL_TicketType;
+    private readonly ExportService _exportService;
 
-    public TicketTypeController(BL_TicketType bL_TicketType)
+    public TicketTypeController(BL_TicketType bL_TicketType, ExportService exportService)
     {
         _bL_TicketType = bL_TicketType;
+        _exportService = exportService;
     }
 
     [HttpGet("List")]
@@ -51,5 +53,36 @@ public class TicketTypeController : ControllerBase
     {
         var ticketType = await _bL_TicketType.Delete(ticketTypeCode);
         return Ok(ticketType);
+    }
+
+    [HttpPost("Export")]
+    public async Task<IActionResult> Export(TicketTypeExportRequestModel requestModel)
+    {
+        try
+        {
+            return requestModel.Format.ToLower() switch
+            {
+                "csv" => File(
+                    await _exportService.ExportToCsv(requestModel.TicketTypeList),
+                    "text/csv",
+                    "Ticket_Type.csv"),
+
+                "xlsx" or "excel" => File(
+                    await _exportService.ExportToExcel(requestModel.TicketTypeList, "Ticket Type"),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Ticket_Type.xlsx"),
+
+                "pdf" => File(
+                    await _exportService.ExportToPdf(requestModel.TicketTypeList, "Ticket Type"),
+                    "application/pdf",
+                    "Ticket_Type.pdf"),
+
+                _ => BadRequest("Unsupported format. Use csv, xlsx, or pdf")
+            };
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Export failed: {ex.Message}");
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace EventTicketingSystem.CSharp.Shared;
+﻿using System.Globalization;
+
+namespace EventTicketingSystem.CSharp.Shared;
 
 public static partial class DevCode
 {
@@ -67,6 +69,31 @@ public static partial class DevCode
     {
         return dt == null ? default(DateTime) : Convert.ToDateTime(dt);
     }
+
+    public static DateTime? ToDateTime(this string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+
+        if (DateTime.TryParse(input, out DateTime result))
+            return result;
+
+        return null;
+    }
+
+    public static DateTime? ToDateTime(this string input, string format, CultureInfo culture = null)
+    {
+        if (string.IsNullOrWhiteSpace(input) || string.IsNullOrWhiteSpace(format))
+            return null;
+
+        culture ??= CultureInfo.InvariantCulture;
+
+        if (DateTime.TryParseExact(input, format, culture, DateTimeStyles.None, out DateTime result))
+            return result;
+
+        return null;
+    }
+
 
     #endregion
 
@@ -379,6 +406,22 @@ public static partial class DevCode
         }
 
         return decrypted;
+    }
+
+    #endregion
+
+    #region Get Request Url
+
+    public static string GetRequestUrl(HttpContext context)
+    {
+        if (context == null || context.Request == null)
+        {
+            return string.Empty;
+        }
+
+        var request = context.Request;
+        var url = $"{request.Scheme}://{request.Host}";
+        return url;
     }
 
     #endregion

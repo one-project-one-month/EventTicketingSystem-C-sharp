@@ -1,4 +1,6 @@
-﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿using EventTicketingSystem.CSharp.Domain.Services;
+
+namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Event")]
 [Route("api/[controller]")]
@@ -6,10 +8,12 @@
 public class EventController : ControllerBase
 {
     private readonly BL_Event _blEvent;
+    private readonly ExportService _exportService;
 
-    public EventController(BL_Event blEvent)
+    public EventController(BL_Event blEvent, ExportService exportService)
     {
         _blEvent = blEvent;
+        _exportService = exportService;
     }
 
     [HttpGet("List")]
@@ -50,6 +54,35 @@ public class EventController : ControllerBase
     {
         var data = await _blEvent.Delete(eventCode);
         return Ok(data);
+    }
+    
+    [HttpPost("Export")]
+    public async Task<IActionResult> Export(EventExportRequestModel requestModel)
+    {
+        try
+        {
+            return requestModel.Format.ToLower() switch
+            {
+                "csv" => File(
+                    await _exportService.ExportToCsv(requestModel.EventList),
+                    "text/csv",
+                    "Events.csv"),
+                "xlsx" or "excel" => File(
+                    await _exportService.ExportToExcel(requestModel.EventList, "Events"),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Events.xlsx"),
+                "pdf" => File(
+                    await _exportService.ExportToPdf(requestModel.EventList, "Events"),
+                    "application/pdf",
+                    "Events.pdf"),
+
+                _ => BadRequest("Unsupported format. Use csv, xlsx, or pdf")
+            };
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Export failed: {ex.Message}");
+        }
     }
     
     [HttpGet("EventStatusOptions")]

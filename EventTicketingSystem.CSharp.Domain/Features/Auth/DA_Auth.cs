@@ -5,10 +5,11 @@ public class DA_Auth : AuthorizationService
     private readonly ILogger<DA_Auth>  _logger;
     private readonly AppDbContext _db;
 
+
     public DA_Auth(IHttpContextAccessor httpContextAccessor, 
                    ILogger<DA_Auth> logger, 
-                   AppDbContext db, 
-                   UserContextService userContextService) : base(httpContextAccessor)
+                   AppDbContext db) : base(httpContextAccessor)
+
     {
         _logger = logger;
         _db = db;

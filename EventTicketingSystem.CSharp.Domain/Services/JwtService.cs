@@ -1,9 +1,3 @@
-using Microsoft.Extensions.Options;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Claims;
-using System.Text;
-
 namespace EventTicketingSystem.CSharp.Domain.Services;
 
 public class JwtService
@@ -36,5 +30,4 @@ public class JwtService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    
 }

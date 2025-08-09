@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-
 namespace EventTicketingSystem.CSharp.Domain.Features.Auth;
 
 public class BL_Auth
@@ -8,15 +6,13 @@ public class BL_Auth
     private readonly JwtService _jwtService;
     private readonly DA_Auth _daAuth;
     private readonly ILogger<BL_Auth> _logger;
-    private readonly UserContextService _userContextService;
 
     public BL_Auth(IOptions<JwtSettings> jwtSettingsOptions, JwtService jwtService,
-                        DA_Auth daAuth, UserContextService userContextService, ILogger<BL_Auth> logger)
+                        DA_Auth daAuth, ILogger<BL_Auth> logger)
     {
         _jwtSettings = jwtSettingsOptions.Value;
         _jwtService = jwtService;
         _daAuth = daAuth;
-        _userContextService = userContextService;
         _logger = logger;
     }
 

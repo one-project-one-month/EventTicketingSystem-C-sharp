@@ -1,4 +1,6 @@
-﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿using EventTicketingSystem.CSharp.Domain.Services;
+
+namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Business Email")]
 [Route("api/[controller]")]
@@ -6,10 +8,12 @@
 public class BusinessEmailController : ControllerBase
 {
     private readonly BL_BusinessEmail _bl_BusinessEmail;
+    private readonly ExportService _exportService;
 
-    public BusinessEmailController(BL_BusinessEmail bl_BusinessEmail)
+    public BusinessEmailController(BL_BusinessEmail bl_BusinessEmail, ExportService exportService)
     {
         _bl_BusinessEmail = bl_BusinessEmail;
+        _exportService = exportService;
     }
 
     [HttpGet("List")]
@@ -34,5 +38,34 @@ public class BusinessEmailController : ControllerBase
     {
         var data = await _bl_BusinessEmail.Create(requestModel);
         return Ok(data);
+    }
+
+    [HttpPost("Export")]
+    public async Task<IActionResult> Export(BusinessEmailExportRequestModel requestModel)
+    {
+        try
+        {
+            return requestModel.Format.ToLower() switch
+            {
+                "csv" => File(
+                    await _exportService.ExportToCsv(requestModel.BusinessEmailList),
+                    "text/csv",
+                    "Business_Email.csv"),
+                "xlsx" or "excel" => File(
+                    await _exportService.ExportToExcel(requestModel.BusinessEmailList, "Business Email"),
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "Business_Email.xlsx"),
+                "pdf" => File(
+                    await _exportService.ExportToPdf(requestModel.BusinessEmailList, "Business Email"),
+                    "application/pdf",
+                    "Business_Email.pdf"),
+
+                _ => BadRequest("Unsupported format. Use csv, xlsx, or pdf")
+            };
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Export failed: {ex.Message}");
+        }
     }
 }

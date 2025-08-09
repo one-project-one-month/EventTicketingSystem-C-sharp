@@ -58,7 +58,6 @@ public static class FeaturesManager
         services.AddScoped<EmailService>();
         services.AddScoped<ExportService>();
         services.AddScoped<JwtService>();
-        services.AddScoped<UserContextService>();
                 
         return services;
     }
