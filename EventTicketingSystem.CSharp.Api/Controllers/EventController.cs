@@ -55,7 +55,7 @@ public class EventController : ControllerBase
         var data = await _blEvent.Delete(eventCode);
         return Ok(data);
     }
-
+    
     [HttpPost("Export")]
     public async Task<IActionResult> Export(EventExportRequestModel requestModel)
     {
@@ -83,5 +83,17 @@ public class EventController : ControllerBase
         {
             return StatusCode(500, $"Export failed: {ex.Message}");
         }
+    }
+    
+    [HttpGet("EventStatusOptions")]
+    [Authorize]
+    public IActionResult GetEventStatusOptions()
+    {
+        var result = _blEvent.GetEventStatusOptions(); 
+
+        if (!result.IsSuccess)
+            return BadRequest(result); 
+
+        return Ok(result);
     }
 }

@@ -72,63 +72,74 @@ public class DA_Event : AuthorizationService
         try
         {
 
-            var item = await (from e in _db.TblEvents
-                              join c in _db.TblEventcategories on e.Eventcategorycode equals c.Eventcategorycode
-                              join b in _db.TblBusinessowners on e.Businessownercode equals b.Businessownercode
-                              join v in _db.TblVenues on e.Venuecode equals v.Venuecode
-                              join vt in _db.TblVenuetypes on v.Venuetypecode equals vt.Venuetypecode
-                              where e.Deleteflag == false
-                              orderby e.Eventid descending
-                              select new
-                              {
-                                  e,
-                                  c.Categoryname,
-                                  b.Fullname,
-                                  v.Venuename,
-                                  v.Capacity,
-                                  v.Description,
-                                  v.Facilities,
-                                  v.Addons,
-                                  v.Venueimage,
-                                  v.Address,
-                                  vt.Venuetypename
-                              }).ToListAsync();
+            var item = await (
+                from e in _db.TblEvents.AsNoTracking()
+                where !e.Deleteflag && e.Eventcode == eventCode
+                join c in _db.TblEventcategories.AsNoTracking() 
+                    on e.Eventcategorycode equals c.Eventcategorycode into category
+                from c in category.DefaultIfEmpty()
+                
+                join b in _db.TblBusinessowners.AsNoTracking() 
+                    on e.Businessownercode equals b.Businessownercode into businessowner
+                from b in businessowner.DefaultIfEmpty()
+                
+                join v in _db.TblVenues.AsNoTracking() 
+                    on e.Venuecode equals v.Venuecode into venue
+                from v in venue.DefaultIfEmpty()
+                
+                join vt in _db.TblVenuetypes.AsNoTracking() 
+                    on v.Venuetypecode equals vt.Venuetypecode into venuetype
+                from vt in venuetype.DefaultIfEmpty()
+                              
+                orderby e.Eventid descending
+                select new
+                { 
+                    e,
+                    Categoryname = c != null ? c.Categoryname : string.Empty,
+                    Fullname = b != null ? b.Fullname : string.Empty,
+                    Venuename = v != null ? v.Venuename : string.Empty,
+                    Capacity      = v.Capacity,
+                    Description   = v != null ? v.Description : string.Empty,
+                    Facilities    = v != null ? v.Facilities : string.Empty,
+                    Addons        = v != null ? v.Addons : string.Empty,
+                    Venueimage    = v != null ? v.Venueimage : string.Empty,
+                    Address       = v != null ? v.Address : string.Empty,
+                    Venuetypename = vt != null ? vt.Venuetypename : string.Empty
+                  }
+                ).FirstOrDefaultAsync();
 
             if (item is null)
             {
-                return Result<EventEditResponseModel>.NotFoundError("No event found.");
+                return Result<EventEditResponseModel>.NotFoundError("Event not found.");
             }
 
-            var firstItem = item.First();
+            var eventModel = EventEditModel.FromTblEvent(item!.e);
+            eventModel.Businessownername = item.Fullname;
+            eventModel.Venuename = item.Venuename;
+            eventModel.Capacity = item.Capacity;
+            eventModel.Description = item.Description;
+            eventModel.Facilities = item.Facilities;
+            eventModel.Address = item.Address;
+            eventModel.Venuetypename = item.Venuetypename;
+            eventModel.Eventcategory = item.Categoryname;
 
-            var eventModel = EventEditModel.FromTblEvent(firstItem.e);
-            eventModel.Businessownername = firstItem.Fullname;
-            eventModel.Venuename = firstItem.Venuename;
-            eventModel.Capacity = firstItem.Capacity;
-            eventModel.Description = firstItem.Description;
-            eventModel.Facilities = firstItem.Facilities;
-
-            if (!string.IsNullOrWhiteSpace(firstItem.Addons))
+            if (!string.IsNullOrWhiteSpace(item.Addons))
             {
-                eventModel.Addons = firstItem.Addons
+                eventModel.Addons = item.Addons
                     .Split([','], StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrWhiteSpace(x))
                     .ToList();
             }
 
-            if (!string.IsNullOrWhiteSpace(firstItem.Venueimage))
+            if (!string.IsNullOrWhiteSpace(item.Venueimage))
             {
-                eventModel.VenueImage = firstItem.Venueimage
+                eventModel.VenueImage = item.Venueimage
                     .Split([','], StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrWhiteSpace(x))
                     .ToList();
             }
-
-            eventModel.Address = firstItem.Address;
-            eventModel.Venuetypename = firstItem.Venuetypename;
-            eventModel.Eventcategory = firstItem.Categoryname;
 
             model.Event = eventModel;
 
@@ -255,31 +266,9 @@ public class DA_Event : AuthorizationService
             {
                 return Result<EventUpdateResponseModel>.NotFoundError("Event Not Found.");
             }
-
-            if (requestModel.Isactive == true)
-            {
-                if (item.Eventstatus == EnumEventStatus.Completed.ToString())
-                {
-                    item.Eventstatus = EnumEventStatus.Ongoing.ToString();
-                }
-                if (item.Eventstatus == EnumEventStatus.Cancelled.ToString())
-                {
-                    item.Eventstatus = EnumEventStatus.Upcoming.ToString();
-                }
-            }
-            else
-            {
-                if (item.Eventstatus == EnumEventStatus.Upcoming.ToString())
-                {
-                    item.Eventstatus = EnumEventStatus.Cancelled.ToString();
-                }
-                if (item.Eventstatus == EnumEventStatus.Ongoing.ToString())
-                {
-                    item.Eventstatus = EnumEventStatus.Completed.ToString();
-                }
-            }
-
+            
             item.Isactive = requestModel.Isactive;
+            item.Eventstatus = requestModel.Eventstatus;
             item.Modifiedby = CurrentUserId;
             item.Modifiedat = DateTime.Now;
             _db.Entry(item).State = EntityState.Modified;
@@ -358,4 +347,15 @@ public class DA_Event : AuthorizationService
     }
 
     #endregion
+    
+    public List<OptionItem> GetEventStatusOptions()
+    {
+        return Enum.GetValues<EnumEventStatus>()
+            .Select(e => new OptionItem
+            {
+                Value = e.ToString(),
+                Label = e.ToString()
+            })
+            .ToList();
+    }
 }

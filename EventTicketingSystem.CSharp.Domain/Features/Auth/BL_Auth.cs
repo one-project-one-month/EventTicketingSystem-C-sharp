@@ -73,8 +73,48 @@ public class BL_Auth
             Token = token,
             TokenExpiresAt = DateTime.Now.AddMinutes(_jwtSettings.TokenExpiryMinutes),
             RefreshToken = refreshToken,
-            RefreshTokenExpiresAt = refreshTokenExpiresAt
-        }, "Login succeeded.");
+            RefreshTokenExpiresAt = refreshTokenExpiresAt,
+            RequirePasswordChange = user.Isfirsttime
+        }, user.Isfirsttime? "First login. Please change your password." : "Login succeeded.");
+    }
+    
+    private async Task<Result<string>> UpdatePassword(ChangePasswordRequestModel request, bool isFirstTimeLogin)
+    {
+        var user = await _daAuth.GetUserByUsername(request.Username);
+
+        if (user == null)
+            return Result<string>.ValidationError("User not found.");
+
+        var isValid = string.Equals(
+            request.CurrentPassword.HashPassword(request.Username),
+            user.Password,
+            StringComparison.Ordinal
+        );
+        if (!isValid)
+        {
+            return Result<string>.ValidationError("Current password is incorrect.");
+        }
+
+        var hashedPassword = request.NewPassword.HashPassword(request.Username);
+
+        await _daAuth.UpdatePassword(request.Username, hashedPassword);
+
+        if (isFirstTimeLogin && user.Isfirsttime)
+        {
+            await _daAuth.SetIsFirstTimeToFalse(request.Username);
+        }
+
+        return Result<string>.Success("Password updated successfully.");
+    }
+    
+    public async Task<Result<string>> ChangePasswordFromFirstLogin(ChangePasswordRequestModel request)
+    {
+        return await UpdatePassword(request, isFirstTimeLogin: true);
+    }
+    
+    public async Task<Result<string>> ChangePassword(ChangePasswordRequestModel request)
+    {
+        return await UpdatePassword(request, isFirstTimeLogin: false);
     }
 
     public async Task<Result<RefreshTokenResponseModel>> RefreshToken(RefreshTokenRequestModel request)

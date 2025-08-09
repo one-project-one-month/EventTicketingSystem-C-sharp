@@ -10,4 +10,5 @@ public class LoginResponseModel
     
     public DateTime RefreshTokenExpiresAt  { get; set; }
     
+    public bool RequirePasswordChange { get; set; }
 }
