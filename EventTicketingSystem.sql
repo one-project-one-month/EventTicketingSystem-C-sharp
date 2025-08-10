@@ -341,6 +341,7 @@ DECLARE
     new_val int;
     i int := 1;
 BEGIN
+    -- Lock the row for update to prevent race conditions
     SELECT sequenceno::int INTO current_val
     FROM tbl_sequence
     WHERE sequenceid = id
@@ -351,14 +352,17 @@ BEGIN
         RAISE EXCEPTION 'Sequence not found or deleted';
     END IF;
 
+    -- Calculate new sequence number after incrementing by quantity
     new_val := current_val + quantity;
 
+    -- Update the sequence once
     UPDATE tbl_sequence
     SET sequenceno = LPAD(new_val::text, 6, '0'),
         sequencedate = now()
     WHERE sequenceid = id
       AND deleteflag = false;
 
+    -- Return all incremented sequence numbers one by one
     WHILE i <= quantity LOOP
         sequence_number := LPAD((current_val + i)::text, 6, '0');
         RETURN NEXT;
@@ -371,7 +375,7 @@ $$;
 alter function public.sp_sequencecode_bulk(integer, integer) owner to postgres;
 
 create function public.sp_ticket_info(p_ticketcode character varying)
-    returns TABLE(ticketpricecode character varying, ticketprice numeric, tickettypecode character varying, eventcode character varying, startdate timestamp with time zone, enddate timestamp with time zone, eventname character varying, tickettypename character varying, venuename character varying)
+    returns TABLE(ticketpricecode character varying, ticketprice numeric, tickettypecode character varying, eventcode character varying, startdate timestamp with time zone, enddate timestamp with time zone, eventname character varying, tickettypename character varying, venuename character varying, address character varying)
     language plpgsql
 as
 $$
@@ -385,7 +389,8 @@ BEGIN
                e.enddate,
                e.eventname,
                tt.tickettypename,
-               v.venuename
+               v.venuename,
+               v.address
         FROM tbl_ticket t
                  INNER JOIN tbl_ticketprice tp ON t.ticketpricecode = tp.ticketpricecode
                  INNER JOIN tbl_tickettype tt ON tp.tickettypecode = tt.tickettypecode
@@ -401,3 +406,116 @@ END;
 $$;
 
 alter function public.sp_ticket_info(varchar) owner to postgres;
+
+create function public.fn_gettransactionhistorydetail(p_transaction_ticket_code text)
+    returns TABLE(email text, eventname text, eventcode text, eventstatus text, tickettypename text, ticketprice numeric, paymenttype text, transactiondate timestamp without time zone, isactive bit, qr text)
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT t.email::text,
+               e.eventname::text,
+               e.eventcode::text,
+               e.eventstatus::text,
+               ttp.tickettypename::text,
+               tp.ticketprice,
+               t.paymenttype::text,
+               t.transactiondate,
+               CASE WHEN e.isactive THEN B'1' ELSE B'0' END,
+               tt.qrimage::text
+        FROM Tbl_Transactionticket tt
+                 JOIN Tbl_Transaction t
+                      ON t.transactioncode = tt.transactioncode
+                          AND t.deleteflag = false
+                 JOIN Tbl_Ticket tk
+                      ON tk.ticketcode = tt.ticketcode
+                          AND tk.deleteflag = false
+                 JOIN Tbl_Ticketprice tp
+                      ON tp.ticketpricecode = tk.ticketpricecode
+                          AND tp.deleteflag = false
+                 JOIN Tbl_Tickettype ttp
+                      ON ttp.tickettypecode = tp.tickettypecode
+                          AND ttp.deleteflag = false
+                 JOIN Tbl_Event e
+                      ON e.eventcode = t.eventcode
+                          AND e.deleteflag = false
+                          AND e.isactive = true
+        WHERE tt.transactionticketid = p_transaction_ticket_code
+          AND tt.deleteflag = false;
+END;
+$$;
+
+alter function public.fn_gettransactionhistorydetail(text) owner to postgres;
+
+create function public.get_transactionhistorylist()
+    returns TABLE(transaction_ticket_code text, email text, transaction_date timestamp without time zone, event_name text, ticket_type_name text)
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+    SELECT
+        ttt.transactionticketcode,
+        tr.email,
+        tr.transactiondate,
+        e.eventname,
+        tt.tickettypename
+    FROM tbltransactiontickets ttt
+    JOIN tbltransactions tr
+        ON tr.transactioncode = ttt.transactioncode
+       AND tr.deleteflag = false
+    JOIN tblevents e
+        ON e.eventcode = tr.eventcode
+       AND e.deleteflag = false
+       AND e.isactive = true
+    JOIN tbltickettypes tt
+        ON tt.tickettypecode = ttt.ticketcode
+       AND tt.deleteflag = false
+    WHERE ttt.deleteflag = false
+    ORDER BY ttt.createdat DESC;
+END;
+$$;
+
+alter function public.get_transactionhistorylist() owner to postgres;
+
+create function public.fn_gettransactionhistorylist()
+    returns TABLE(transactioncode text, email text, transactiondate timestamp without time zone, eventname text, tickettypename text, qty bigint)
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT tr.transactioncode::text,
+               tr.email::text,
+               tr.transactiondate,
+               e.eventname::text,
+               string_agg(DISTINCT tt.tickettypename::text, ', ') AS tickettypename,
+               COUNT(*)                                           AS qty
+        FROM tbl_transaction tr
+                 JOIN tbl_event e
+                      ON e.eventcode = tr.eventcode
+                          AND e.deleteflag = false
+                 JOIN tbl_transactionticket ttt
+                      ON ttt.transactioncode = tr.transactioncode
+                          AND ttt.deleteflag = false
+                 JOIN tbl_ticket tk
+                      ON tk.ticketcode = ttt.ticketcode
+                          AND tk.deleteflag = false
+                 JOIN tbl_ticketprice tp
+                      ON tp.ticketpricecode = tk.ticketpricecode
+                          AND tp.deleteflag = false
+                 JOIN tbl_tickettype tt
+                      ON tt.tickettypecode = tp.tickettypecode
+                          AND tt.deleteflag = false
+        WHERE tr.deleteflag = false
+        GROUP BY tr.transactioncode,
+                 tr.email,
+                 tr.transactiondate,
+                 e.eventname
+        ORDER BY tr.transactiondate DESC;
+END;
+$$;
+
+alter function public.fn_gettransactionhistorylist() owner to postgres;
+
