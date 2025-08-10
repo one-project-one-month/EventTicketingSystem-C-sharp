@@ -14,11 +14,11 @@ public class TicketTypeController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List")]
+    [HttpGet("List/{pageNo}")]
     [AllowAnonymous]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(int pageNo)
     {
-        var lst = await _bL_TicketType.List();
+        var lst = await _bL_TicketType.List(pageNo);
         return Ok(lst);
     }
 

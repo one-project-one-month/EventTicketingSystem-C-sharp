@@ -16,11 +16,11 @@ public class BusinessEmailController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List")]
+    [HttpGet("List/{pageNo}")]
     [Authorize]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(int pageNo)
     {
-        var data = await _bl_BusinessEmail.List();
+        var data = await _bl_BusinessEmail.List(pageNo);
         return Ok(data);
     }
 

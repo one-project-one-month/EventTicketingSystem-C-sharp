@@ -18,14 +18,10 @@ public class BL_Ticket
     {
         return await _da_Ticket.GetTicketByCode(ticketCode);
     }
-    public async Task<Result<TicketListResponseModel>> GetAllTicket()
-    {
-        return await _da_Ticket.GetAllTicket();
-    }
 
-    public async Task<Result<List<TicketResponseModel>>> GetTicketList()
+    public async Task<Result<TicketListResponseModel>> List(int pageNo)
     {
-        return await _da_Ticket.GetTicketList();
+        return await _da_Ticket.List(pageNo);
     }
 
     public async Task<Result<TicketResponseModel>> DeleteByCode(string ticketCode)
@@ -33,7 +29,7 @@ public class BL_Ticket
         return await _da_Ticket.DeleteByCode(ticketCode);
     }
 
-    public async Task<Result<TicketResponseModel>> UpdateTicket(string ticketCode,bool isUsed)
+    public async Task<Result<TicketResponseModel>> UpdateTicket(string ticketCode, bool isUsed)
     {
         return await _da_Ticket.UpdateTicket(ticketCode, isUsed);
     }

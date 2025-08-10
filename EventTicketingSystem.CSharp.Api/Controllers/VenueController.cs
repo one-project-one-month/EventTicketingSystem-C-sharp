@@ -1,6 +1,3 @@
-using EventTicketingSystem.CSharp.Domain.Models.Features.VenueType;
-using EventTicketingSystem.CSharp.Domain.Services;
-
 namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Venue")]
@@ -17,11 +14,11 @@ public class VenueController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List")]
+    [HttpGet("List/{pageNo}")]
     [AllowAnonymous]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(int pageNo)
     {
-        var data = await _blVenue.List();
+        var data = await _blVenue.List(pageNo);
         return Ok(data);
     }
 

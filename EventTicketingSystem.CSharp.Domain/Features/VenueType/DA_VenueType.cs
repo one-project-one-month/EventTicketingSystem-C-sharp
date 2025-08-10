@@ -16,23 +16,32 @@ public class DA_VenueType : AuthorizationService
         _commonService = commonService;
     }
 
-    #region VenueType List
+    #region Venue Type List
 
-    public async Task<Result<VenueTypeListResponseModel>> List()
+    public async Task<Result<VenueTypeListResponseModel>> List(int pageNo)
     {
-        var model = new VenueTypeListResponseModel();
         try
         {
-            var data = await _db.TblVenuetypes
-                                .Where(x => x.Deleteflag == false)
-                                .OrderByDescending(x => x.Venuetypeid)
-                                .ToListAsync();
-            if (data is null)
-            {
-                return Result<VenueTypeListResponseModel>.NotFoundError("Venue Type Not Found.");
-            }
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
 
-            model.VenueTypeList = data.Select(VenueTypeListModel.FromTblVenueType).ToList();
+            var paginatedResult = await _db.TblVenuetypes
+                                    .Where(x => !x.Deleteflag)
+                                    .OrderByDescending(x => x.Venuetypeid)
+                                    .ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
+                return Result<VenueTypeListResponseModel>.NotFoundError("Venue Type Not Found.");
+
+            var model = new VenueTypeListResponseModel
+            {
+                VenueTypeList = paginatedResult.ItemList
+                    .Select(VenueTypeListModel.FromTblVenueType)
+                    .ToList(),
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
+
             return Result<VenueTypeListResponseModel>.Success(model);
         }
         catch (Exception ex)

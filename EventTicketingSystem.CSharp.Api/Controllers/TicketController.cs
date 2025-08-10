@@ -12,28 +12,16 @@ public class TicketController : ControllerBase
         _blTicket = blTicket;
     }
 
-    [HttpGet("List")]
-    public async Task<IActionResult> GetList()
+    [HttpGet("List/{pageNo}")]
+    public async Task<IActionResult> GetList(int pageNo)
     {
-        var result = await _blTicket.GetAllTicket();
+        var result = await _blTicket.List(pageNo);
 
         if (result.IsError)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, result.Message);
         }
 
-        return Ok(result.Data);
-    }
-
-    [HttpGet("Lists")]
-    public async Task<IActionResult> GetTicketList()
-    {
-
-        var result = await _blTicket.GetTicketList();
-        if (result.IsError)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, result.Message);
-        }
         return Ok(result.Data);
     }
 

@@ -34,33 +34,40 @@ public class DA_VerificationCode : AuthorizationService
 
     #region Get Verification Code List
 
-    public async Task<Result<VCResponseModel>> List()
+    public async Task<Result<VCResponseModel>> List(int pageNo)
     {
-        var responseModel = new Result<VCResponseModel>();
-        var model = new VCResponseModel();
         try
         {
-            var data = await _db.TblVerifications
-                        .Where(x => x.Deleteflag == false)
-                        .ToListAsync();
-            if (data is null)
-            {
-                return Result<VCResponseModel>.NotFoundError("No Verification Found.");
-            }
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
 
-            model.VerificationCodes = data.Select(x => new VCodeModel
+            var paginatedResult = await _db.TblVerifications
+                                    .Where(x => !x.Deleteflag)
+                                    .OrderByDescending(x => x.Verificationid)
+                                    .ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
+                return Result<VCResponseModel>.NotFoundError("No Verification Found.");
+
+            var model = new VCResponseModel
             {
-                VerificationId = x.Verificationid,
-                VerificationCode = x.Verificationcode,
-                Email = x.Email,
-                ExpiredTime = x.Expiredtime,
-                Isused = x.Isused,
-                Createdat = x.Createdat,
-                Createdby = x.Createdby,
-                Modifiedat = x.Modifiedat,
-                Modifiedby = x.Modifiedby,
-                Deleteflag = false
-            }).ToList();
+                VerificationCodes = paginatedResult.ItemList.Select(x => new VCodeModel
+                {
+                    VerificationId = x.Verificationid,
+                    VerificationCode = x.Verificationcode,
+                    Email = x.Email,
+                    ExpiredTime = x.Expiredtime,
+                    Isused = x.Isused,
+                    Createdat = x.Createdat,
+                    Createdby = x.Createdby,
+                    Modifiedat = x.Modifiedat,
+                    Modifiedby = x.Modifiedby,
+                    Deleteflag = false
+                }).ToList(),
+
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
 
             return Result<VCResponseModel>.Success(model);
         }

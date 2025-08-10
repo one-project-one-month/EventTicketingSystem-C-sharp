@@ -1,6 +1,4 @@
-﻿using EventTicketingSystem.CSharp.Domain.Services;
-
-namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Event")]
 [Route("api/[controller]")]
@@ -16,11 +14,11 @@ public class EventController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List")]
+    [HttpGet("List/{pageNo}")]
     [AllowAnonymous]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(int pageNo)
     {
-        var data = await _blEvent.List();
+        var data = await _blEvent.List(pageNo);
         return Ok(data);
     }
 

@@ -1,6 +1,5 @@
 ﻿using EventTicketingSystem.CSharp.Domain.Features.VenueType;
 using EventTicketingSystem.CSharp.Domain.Models.Features.VenueType;
-using EventTicketingSystem.CSharp.Domain.Services;
 
 namespace EventTicketingSystem.CSharp.Api.Controllers
 {
@@ -18,11 +17,11 @@ namespace EventTicketingSystem.CSharp.Api.Controllers
             _exportService = exportService;
         }
 
-        [HttpGet("List")]
+        [HttpGet("List/{pageNo}")]
         [AllowAnonymous]
-        public async Task<IActionResult> List()
+        public async Task<IActionResult> List(int pageNo)
         {
-            return Ok(await _blVenueType.List());
+            return Ok(await _blVenueType.List(pageNo));
         }
 
         [HttpGet("Edit/{venueTypeCode}")]

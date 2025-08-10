@@ -52,6 +52,7 @@ public class DA_Ticket : AuthorizationService
             return Result<TicketEditResponseModel>.SystemError(ex.Message);
         }
     }
+
     public async Task<Result<TicketEditResponseModel>> GetTicketByCode(string ticketCode)
     {
         try
@@ -89,24 +90,53 @@ public class DA_Ticket : AuthorizationService
         }
     }
 
-    public async Task<Result<TicketListResponseModel>> GetAllTicket()
+    public async Task<Result<TicketListResponseModel>> List(int pageNo)
     {
-        var model = new TicketListResponseModel();
         try
         {
-            var data = await _db.TblTickets.ToListAsync();
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
 
-            model.Tickets = data.Select(x => new TicketResponseModel
+            var query = from t in _db.TblTickets.AsNoTracking()
+                        join tp in _db.TblTicketprices on t.Ticketpricecode equals tp.Ticketpricecode
+                        join tt in _db.TblTickettypes on tp.Tickettypecode equals tt.Tickettypecode
+                        orderby t.Ticketid descending
+                        select new TicketListModel
+                        {
+                            Ticketid = t.Ticketid,
+                            Ticketcode = t.Ticketcode,
+                            Ticketpricecode = t.Ticketpricecode,
+                            Isused = t.Isused,
+                            Createdby = t.Createdby,
+                            Createdat = t.Createdat,
+                            Modifiedby = t.Modifiedby,
+                            Modifiedat = t.Modifiedat,
+                            Deleteflag = t.Deleteflag,
+                            Ticketpriceid = tp.Ticketpriceid,
+                            Tickettypecode = tp.Tickettypecode,
+                            Ticketprice = tp.Ticketprice,
+                            Ticketquantity = tp.Ticketquantity,
+                            Tickettypeid = tt.Tickettypeid,
+                            Tickettypename = tt.Tickettypename
+                        };
+
+            var paginatedResult = await query.ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
+                return Result<TicketListResponseModel>.Success(new TicketListResponseModel
+                {
+                    Tickets = new List<TicketListModel>(),
+                    PageNo = pagination.PageNo,
+                    PageSize = pagination.PageSize,
+                    TotalRowCount = pagination.TotalRowCount
+                });
+
+            var model = new TicketListResponseModel
             {
-                Ticketid = x.Ticketid,
-                Ticketcode = x.Ticketcode,
-                Ticketpricecode = x.Ticketpricecode,
-                Isused = x.Isused,
-                Createdby = x.Createdby,
-                Createdat = x.Createdat,
-                Modifiedby = x.Modifiedby,
-                Modifiedat = x.Modifiedat
-            }).ToList();
+                Tickets = paginatedResult.ItemList,
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
 
             return Result<TicketListResponseModel>.Success(model);
         }
@@ -114,69 +144,6 @@ public class DA_Ticket : AuthorizationService
         {
             _logger.LogExceptionError(ex);
             return Result<TicketListResponseModel>.SystemError(ex.Message);
-        }
-    }
-
-    public async Task<Result<List<TicketResponseModel>>> GetTicketList()
-    {
-        try
-        {
-            //var tickets = await _db.TblTickets
-            //                .AsNoTracking()
-            //                .Include(t => t.Ticketpricecode)
-            //                .ThenInclude(p => p.TicketType)
-            //                .Select(t => new TicketResponseModel
-            //                {
-            //                        Ticketid = t.Ticketid,
-            //                        Ticketcode = t.Ticketcode,
-            //                        Ticketpricecode = t.Ticketpricecode,
-            //                        Isused = t.Isused,
-            //                        Createdby = t.Createdby,
-            //                        Createdat = t.Createdat,
-            //                        Modifiedby = t.Modifiedby,
-            //                        Modifiedat = t.Modifiedat,
-            //                        Deleteflag = t.Deleteflag,
-            //                        Ticketpriceid = t.TicketPrice!.Ticketpriceid,
-            //                        Eventcode = t.TicketPrice.Eventcode,
-            //                        Tickettypecode = t.TicketPrice.Tickettypecode,
-            //                        Ticketprice = t.TicketPrice.Ticketprice,
-            //                        Ticketquantity = t.TicketPrice.Ticketquantity,
-            //                        Tickettypeid = t.TicketPrice.TicketType!.Tickettypeid,
-            //                        Tickettypename = t.TicketPrice.TicketType.Tickettypename
-            //                    })
-            //                .ToListAsync();
-
-            var tickets = await (from t in _db.TblTickets.AsNoTracking()
-                                 join tp in _db.TblTicketprices on t.Ticketpricecode equals tp.Ticketpricecode
-                                 join tt in _db.TblTickettypes on tp.Tickettypecode equals tt.Tickettypecode
-                                 select new TicketResponseModel
-                                 {
-                                     Ticketid = t.Ticketid,
-                                     Ticketcode = t.Ticketcode,
-                                     Ticketpricecode = t.Ticketpricecode,
-                                     Isused = t.Isused,
-                                     Createdby = t.Createdby,
-                                     Createdat = t.Createdat,
-                                     Modifiedby = t.Modifiedby,
-                                     Modifiedat = t.Modifiedat,
-                                     Deleteflag = t.Deleteflag,
-                                     Ticketpriceid = tp.Ticketpriceid,
-                                     //Eventcode = tp.Eventcode,
-                                     Tickettypecode = tp.Tickettypecode,
-                                     Ticketprice = tp.Ticketprice,
-                                     Ticketquantity = tp.Ticketquantity,
-                                     Tickettypeid = tt.Tickettypeid,
-                                     Tickettypename = tt.Tickettypename
-                                 }
-                                ).ToListAsync();
-
-
-            return Result<List<TicketResponseModel>>.Success(tickets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogExceptionError(ex);
-            return Result<List<TicketResponseModel>>.SystemError(ex.Message);
         }
     }
 
@@ -223,12 +190,8 @@ public class DA_Ticket : AuthorizationService
             data!.Modifiedat = DateTime.Now;
             _db.Entry(data).State = EntityState.Modified;
             await _db.SaveAndDetachAsync();
-            var model = new TicketResponseModel()
-            {
-                Isused = data.Isused,
-                Modifiedat = data.Modifiedat,
-            };
-            return Result<TicketResponseModel>.Success("Ticket is updated successfully!");
+
+            return Result<TicketResponseModel>.Success("Ticket updated successfully!");
         }
         catch (Exception ex)
         {

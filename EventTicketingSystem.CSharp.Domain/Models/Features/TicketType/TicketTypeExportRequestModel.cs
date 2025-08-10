@@ -1,4 +1,4 @@
-﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.TicketType;
+﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 public class TicketTypeExportRequestModel
 {

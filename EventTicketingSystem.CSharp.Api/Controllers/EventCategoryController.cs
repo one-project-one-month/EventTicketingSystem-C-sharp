@@ -16,11 +16,11 @@ public class EventCategoryController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List")]
+    [HttpGet("List/{pageNo}")]
     [AllowAnonymous]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(int pageNo)
     {
-        return Ok(await _blEventCategory.List());
+        return Ok(await _blEventCategory.List(pageNo));
     }
 
     [HttpGet("Edit/{eventCategoryCode}")]

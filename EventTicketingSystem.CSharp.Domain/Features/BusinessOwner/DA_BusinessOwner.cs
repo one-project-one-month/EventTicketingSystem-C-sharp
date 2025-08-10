@@ -18,21 +18,30 @@ public class DA_BusinessOwner : AuthorizationService
 
     #region Get Business Owner List
 
-    public async Task<Result<BusinessOwnerListResponseModel>> List()
+    public async Task<Result<BusinessOwnerListResponseModel>> List(int pageNo)
     {
-        var model = new BusinessOwnerListResponseModel();
         try
         {
-            var data = await _db.TblBusinessowners
-                        .Where(x => x.Deleteflag == false)
-                        .OrderByDescending(x => x.Businessownerid)
-                        .ToListAsync();
-            if (data is null)
-            {
-                return Result<BusinessOwnerListResponseModel>.NotFoundError("No Owner Found.");
-            }
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
 
-            model.BusinessOwners = data.Select(BusinessOwnerListModel.FromTblOwner).ToList();
+            var paginatedResult = await _db.TblBusinessowners
+                                    .Where(x => !x.Deleteflag)
+                                    .OrderByDescending(x => x.Businessownerid)
+                                    .ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
+                return Result<BusinessOwnerListResponseModel>.NotFoundError("No Owner Found.");
+
+            var model = new BusinessOwnerListResponseModel
+            {
+                BusinessOwners = paginatedResult.ItemList
+                    .Select(BusinessOwnerListModel.FromTblOwner)
+                    .ToList(),
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
+
             return Result<BusinessOwnerListResponseModel>.Success(model);
         }
         catch (Exception ex)
@@ -158,7 +167,7 @@ public class DA_BusinessOwner : AuthorizationService
                     errorMessage += "Name is invalid.\n";
                 }
             }
-            
+
             if (requestModel.Phone.IsNullOrEmpty() || requestModel.Phone.Length < 9)
             {
                 errorMessage += "Phone No can't be empty or less than 9 digits!\n";

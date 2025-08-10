@@ -1,6 +1,6 @@
 ﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.BusinessOwner;
 
-public class BusinessOwnerListResponseModel
+public class BusinessOwnerListResponseModel : PaginationModel
 {
     public List<BusinessOwnerListModel>? BusinessOwners { get; set; }
 }

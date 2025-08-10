@@ -1,6 +1,6 @@
 ﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.Venue;
 
-public class VenueListResponseModel
+public class VenueListResponseModel : PaginationModel
 {
     public List<VenueListModel>? VenueList { get; set; }
 }

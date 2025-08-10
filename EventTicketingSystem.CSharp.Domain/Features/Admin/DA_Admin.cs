@@ -21,23 +21,35 @@ public class DA_Admin : AuthorizationService
 
     #region Get Admin List
 
-    public async Task<Result<AdminListResponseModel>> List()
+    public async Task<Result<AdminListResponseModel>> List(int pageNo)
     {
-        var responesModel = new Result<AdminListResponseModel>();
-        var model = new AdminListResponseModel();
-
         try
         {
-            var data = await _db.TblAdmins
-                        .Where(x => x.Deleteflag == false)
-                        .OrderByDescending(x => x.Adminid)
-                        .ToListAsync();
-            if (data is null)
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
+
+            var paginatedResult = await _db.TblAdmins
+                                .Where(x => x.Deleteflag == false)
+                                .OrderByDescending(x => x.Adminid)
+                                .ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
             {
-                responesModel = Result<AdminListResponseModel>.Success("No admin user found.");
+                return Result<AdminListResponseModel>.Success("No admin user found.");
             }
 
-            model.AdminList = data!.Select(AdminListModel.FromTblAdmin).ToList();
+            var dataList = new PaginatedListModel<AdminListModel>(
+                paginatedResult.ItemList.Select(AdminListModel.FromTblAdmin).ToList(),
+                paginatedResult.Pagination
+            );
+
+            var model = new AdminListResponseModel
+            {
+                AdminList = dataList.ItemList,
+                PageNo = dataList.Pagination.PageNo,
+                PageSize = dataList.Pagination.PageSize,
+                TotalRowCount = dataList.Pagination.TotalRowCount
+            };
+
             return Result<AdminListResponseModel>.Success(model);
         }
         catch (Exception ex)

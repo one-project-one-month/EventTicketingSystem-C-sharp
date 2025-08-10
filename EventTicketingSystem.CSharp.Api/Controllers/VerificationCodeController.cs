@@ -1,6 +1,4 @@
-﻿using EventTicketingSystem.CSharp.Domain.Services;
-
-namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Verification Code")]
 [Route("api/[controller]")]
@@ -16,11 +14,11 @@ public class VerificationCodeController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List")]
+    [HttpGet("List/{pageNo}")]
     [Authorize]
-    public async Task<IActionResult> List()
+    public async Task<IActionResult> List(int pageNo)
     {
-        return Ok(await _vcService.List());
+        return Ok(await _vcService.List(pageNo));
     }
 
     [HttpGet("Get/{vcId}")]

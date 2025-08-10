@@ -18,34 +18,39 @@ public class DA_Event : AuthorizationService
 
     #region Event List
 
-    public async Task<Result<EventListResponseModel>> List()
+    public async Task<Result<EventListResponseModel>> List(int pageNo)
     {
-        var responseModel = new Result<EventListResponseModel>();
-        var model = new EventListResponseModel();
-
         try
         {
-            var data = await (from e in _db.TblEvents
-                              join b in _db.TblBusinessowners on e.Businessownercode equals b.Businessownercode
-                              where e.Deleteflag == false
-                              orderby e.Eventid descending
-                              select new
-                              {
-                                  e,
-                                  b.Fullname
-                              }).ToListAsync();
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
 
-            if (data is null || !data.Any())
-            {
+            var query = from e in _db.TblEvents
+                        join b in _db.TblBusinessowners on e.Businessownercode equals b.Businessownercode
+                        where !e.Deleteflag
+                        orderby e.Eventid descending
+                        select new
+                        {
+                            EventEntity = e,
+                            BusinessOwnerName = b.Fullname
+                        };
+
+            var paginatedResult = await query.ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
                 return Result<EventListResponseModel>.NotFoundError("No event found.");
-            }
 
-            model.EventList = data.Select(x =>
+            var model = new EventListResponseModel
             {
-                var eventModel = EventListModel.FromTblEvent(x.e);
-                eventModel.Businessownername = x.Fullname;
-                return eventModel;
-            }).ToList();
+                EventList = paginatedResult.ItemList.Select(x =>
+                {
+                    var eventModel = EventListModel.FromTblEvent(x.EventEntity);
+                    eventModel.Businessownername = x.BusinessOwnerName;
+                    return eventModel;
+                }).ToList(),
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
 
             return Result<EventListResponseModel>.Success(model);
         }
@@ -75,37 +80,37 @@ public class DA_Event : AuthorizationService
             var item = await (
                 from e in _db.TblEvents.AsNoTracking()
                 where !e.Deleteflag && e.Eventcode == eventCode
-                join c in _db.TblEventcategories.AsNoTracking() 
+                join c in _db.TblEventcategories.AsNoTracking()
                     on e.Eventcategorycode equals c.Eventcategorycode into category
                 from c in category.DefaultIfEmpty()
-                
-                join b in _db.TblBusinessowners.AsNoTracking() 
+
+                join b in _db.TblBusinessowners.AsNoTracking()
                     on e.Businessownercode equals b.Businessownercode into businessowner
                 from b in businessowner.DefaultIfEmpty()
-                
-                join v in _db.TblVenues.AsNoTracking() 
+
+                join v in _db.TblVenues.AsNoTracking()
                     on e.Venuecode equals v.Venuecode into venue
                 from v in venue.DefaultIfEmpty()
-                
-                join vt in _db.TblVenuetypes.AsNoTracking() 
+
+                join vt in _db.TblVenuetypes.AsNoTracking()
                     on v.Venuetypecode equals vt.Venuetypecode into venuetype
                 from vt in venuetype.DefaultIfEmpty()
-                              
+
                 orderby e.Eventid descending
                 select new
-                { 
+                {
                     e,
                     Categoryname = c != null ? c.Categoryname : string.Empty,
                     Fullname = b != null ? b.Fullname : string.Empty,
                     Venuename = v != null ? v.Venuename : string.Empty,
-                    Capacity      = v.Capacity,
-                    Description   = v != null ? v.Description : string.Empty,
-                    Facilities    = v != null ? v.Facilities : string.Empty,
-                    Addons        = v != null ? v.Addons : string.Empty,
-                    Venueimage    = v != null ? v.Venueimage : string.Empty,
-                    Address       = v != null ? v.Address : string.Empty,
+                    Capacity = v.Capacity,
+                    Description = v != null ? v.Description : string.Empty,
+                    Facilities = v != null ? v.Facilities : string.Empty,
+                    Addons = v != null ? v.Addons : string.Empty,
+                    Venueimage = v != null ? v.Venueimage : string.Empty,
+                    Address = v != null ? v.Address : string.Empty,
                     Venuetypename = vt != null ? vt.Venuetypename : string.Empty
-                  }
+                }
                 ).FirstOrDefaultAsync();
 
             if (item is null)
@@ -266,7 +271,7 @@ public class DA_Event : AuthorizationService
             {
                 return Result<EventUpdateResponseModel>.NotFoundError("Event Not Found.");
             }
-            
+
             item.Isactive = requestModel.Isactive;
             item.Eventstatus = requestModel.Eventstatus;
             item.Modifiedby = CurrentUserId;
@@ -298,7 +303,7 @@ public class DA_Event : AuthorizationService
         {
             var sequenceList = await _db.TblSequences
                         .Where(
-                            x => x.Eventcode == eventCode && 
+                            x => x.Eventcode == eventCode &&
                             x.Deleteflag == false)
                         .ToListAsync();
 
@@ -347,7 +352,7 @@ public class DA_Event : AuthorizationService
     }
 
     #endregion
-    
+
     public List<OptionItem> GetEventStatusOptions()
     {
         return Enum.GetValues<EnumEventStatus>()

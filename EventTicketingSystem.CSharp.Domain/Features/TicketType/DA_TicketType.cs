@@ -19,42 +19,60 @@ public class DA_TicketType : AuthorizationService
         _commonService = commonService;
     }
 
-    public async Task<Result<TicketTypeListResponseModel>> List()
+    public async Task<Result<TicketTypeListResponseModel>> List(int pageNo)
     {
         var model = new TicketTypeListResponseModel();
-        var responseModel = new Result<TicketTypeListResponseModel>();
 
-        string query = @"SELECT 
-            tt.tickettypecode,
-            tt.eventcode,
-            te.eventname,
-            tt.tickettypename,
-            tt.createdby,
-            tt.createdat,
-            tt.modifiedby,
-            tt.modifiedat,
-            tt.deleteflag,
-            tt.tickettypeid,
-            tp.ticketprice,
-            tp.ticketquantity
-        FROM tbl_tickettype tt
-        LEFT JOIN tbl_ticketprice tp ON tt.tickettypecode = tp.tickettypecode
-        LEFT JOIN tbl_event te ON te.eventcode = tt.eventcode
-        WHERE tt.deleteflag = false";
+        int pageSize = 10;
+        int offset = (pageNo - 1) * pageSize;
 
-        using IDbConnection dbConnection = new NpgsqlConnection(_connection);
-        dbConnection.Open();
+        string query = $@"SELECT 
+                            tt.tickettypecode,
+                            tt.eventcode,
+                            te.eventname,
+                            tt.tickettypename,
+                            tt.createdby,
+                            tt.createdat,
+                            tt.modifiedby,
+                            tt.modifiedat,
+                            tt.deleteflag,
+                            tt.tickettypeid,
+                            tp.ticketprice,
+                            tp.ticketquantity
+                        FROM tbl_tickettype tt
+                        LEFT JOIN tbl_ticketprice tp ON tt.tickettypecode = tp.tickettypecode
+                        LEFT JOIN tbl_event te ON te.eventcode = tt.eventcode
+                        WHERE tt.deleteflag = false
+                        ORDER BY tt.tickettypeid DESC
+                        LIMIT @PageSize OFFSET @Offset";
 
-        var ticketTypeList = (await dbConnection.QueryAsync<TicketTypeListModel>(query)).ToList();
-        model.TicketTypeList = ticketTypeList;
+        try
+        {
+            using var dbConnection = new NpgsqlConnection(_connection);
+            await dbConnection.OpenAsync();
 
-        responseModel = Result<TicketTypeListResponseModel>.Success(model, "Ticket types are retrieved successfullly!");
-        return responseModel;
+            var ticketTypeList = (await dbConnection.QueryAsync<TicketTypeListModel>(query, new { PageSize = pageSize, Offset = offset })).ToList();
+            model.TicketTypeList = ticketTypeList;
+
+            var countQuery = @"SELECT COUNT(*) FROM tbl_tickettype WHERE deleteflag = false";
+            var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery);
+
+            model.PageNo = pageNo;
+            model.PageSize = pageSize;
+            model.TotalRowCount = totalCount;
+
+            return Result<TicketTypeListResponseModel>.Success(model, "Ticket types are retrieved successfully!");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<TicketTypeListResponseModel>.SystemError(ex.Message);
+        }
     }
 
     public async Task<Result<TicketTypeEditResponseModel>> Edit(string code)
     {
-        var model = new TicketTypeEditResponseModel();        
+        var model = new TicketTypeEditResponseModel();
 
         try
         {

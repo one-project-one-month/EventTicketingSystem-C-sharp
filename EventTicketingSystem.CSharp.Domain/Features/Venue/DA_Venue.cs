@@ -17,21 +17,31 @@ public class DA_Venue : AuthorizationService
     }
 
     #region Get Venue List
-    public async Task<Result<VenueListResponseModel>> List()
+
+    public async Task<Result<VenueListResponseModel>> List(int pageNo)
     {
-        var model = new VenueListResponseModel();
         try
         {
-            var data = await _db.TblVenues
-                        .Where(x => x.Deleteflag == false)
-                        .OrderBy(x => x.Venueid)
-                        .ToListAsync();
-            if (data is null)
-            {
-                return Result<VenueListResponseModel>.NotFoundError("No venue found.");
-            }
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
 
-            model.VenueList = data.Select(VenueListModel.FromTblVenue).ToList();
+            var paginatedResult = await _db.TblVenues
+                                    .Where(x => !x.Deleteflag)
+                                    .OrderByDescending(x => x.Venueid)
+                                    .ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
+                return Result<VenueListResponseModel>.NotFoundError("No venue found.");
+
+            var model = new VenueListResponseModel
+            {
+                VenueList = paginatedResult.ItemList
+                    .Select(VenueListModel.FromTblVenue)
+                    .ToList(),
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
+
             return Result<VenueListResponseModel>.Success(model);
         }
         catch (Exception ex)
