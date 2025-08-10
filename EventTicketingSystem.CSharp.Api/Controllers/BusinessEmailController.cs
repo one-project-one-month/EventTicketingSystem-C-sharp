@@ -1,6 +1,4 @@
-﻿using EventTicketingSystem.CSharp.Domain.Services;
-
-namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Business Email")]
 [Route("api/[controller]")]

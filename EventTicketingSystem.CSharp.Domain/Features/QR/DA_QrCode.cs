@@ -3,13 +3,11 @@
 public class DA_QrCode
 {
     private readonly ILogger<DA_QrCode> _logger;
-    private readonly AppDbContext _db;
     private readonly DapperService _dapper;
 
-    public DA_QrCode(ILogger<DA_QrCode> logger, AppDbContext db, DapperService dapper)
+    public DA_QrCode(ILogger<DA_QrCode> logger, DapperService dapper)
     {
         _logger = logger;
-        _db = db;
         _dapper = dapper;
     }
 
@@ -37,7 +35,8 @@ public class DA_QrCode
             $"|{ticketInfo.TicketTypeName}" +
             $"|{requestModel.FullName}" +
             $"|{requestModel.Email}" +
-            $"|{ticketInfo.VenueName}";
+            $"|{ticketInfo.VenueName}"+
+            $"|{ticketInfo.Address}";
 
         response.QrString = qrString;
 
@@ -45,7 +44,7 @@ public class DA_QrCode
 
     }
 
-    public Result<QrCheckResponseModel> CheckQr(string qrString)
+    public async Task<Result<QrCheckResponseModel>> CheckQr(string qrString)
     {
         var response = new QrCheckResponseModel();
 
@@ -62,14 +61,15 @@ public class DA_QrCode
             return Result<QrCheckResponseModel>.SystemError("Invalid QR string format.");
         }
 
-        var gateOpenTime = response.EventTimeFrom.ToDateTime() - TimeSpan.FromMinutes(30);
 
         response.EventName = qrParts[0];
         response.EventCode = qrParts[1];
         response.EventDate = qrParts[2];
         response.EventTimeFrom = qrParts[3];
+        var gateOpenTime = response.EventTimeFrom.ToDateTime();
+        var getDateTime = gateOpenTime - TimeSpan.FromMinutes(30);
         response.EventTimeTo = qrParts[4];
-        response.GateOpenTime = gateOpenTime?.ToString("hh:mm tt")!;
+        response.GateOpenTime = getDateTime?.ToString("hh:mm tt")!;
         response.TicketCode = qrParts[6];
         response.TicketPrice = qrParts[7];
         response.TicketType = qrParts[8];
@@ -78,6 +78,6 @@ public class DA_QrCode
         response.Location = qrParts.Length > 11 ? qrParts[11] : string.Empty;
         response.Address = qrParts.Length > 12 ? qrParts[12] : string.Empty;
 
-        return Result<QrCheckResponseModel>.Success(response, "QR code is valid.");
+        return Result<QrCheckResponseModel>.Success(response);
     }
 }

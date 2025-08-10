@@ -7,19 +7,22 @@ public class DA_Transaction : AuthorizationService
     private readonly CommonService _commonService;
     private readonly BL_QrCode _blQrCode;
     private readonly EmailService _emailService;
+    private readonly DapperService _dapper;
 
     public DA_Transaction(IHttpContextAccessor httpContextAccessor,
                           ILogger<DA_Transaction> logger,
                           AppDbContext db,
                           CommonService commonService,
                           BL_QrCode blQrCode,
-                          EmailService emailService) : base(httpContextAccessor)
+                          EmailService emailService,
+                          DapperService dapper) : base(httpContextAccessor)
     {
         _logger = logger;
         _db = db;
         _commonService = commonService;
         _blQrCode = blQrCode;
         _emailService = emailService;
+        _dapper = dapper;
     }
 
     public async Task<Result<EventTicketTypeListResponseModel>> GetTicketTypeList(string eventCode)
@@ -316,6 +319,56 @@ public class DA_Transaction : AuthorizationService
         {
             _logger.LogExceptionError(ex);
             return Result<TransactionResponseModel>.SystemError(ex.Message);
+        }
+    }
+
+    public async Task<Result<TransactionHistoryListResponseModel>> PurchasedHistoryList()
+    {
+        try
+        {
+            var dataList = await _dapper.QueryStoredProcedureAsync<TransactionHistoryModel>(Queries.fn_gettransactionhistorylist, null!);
+
+            if (dataList is null || !dataList.Any())
+            {
+                return Result<TransactionHistoryListResponseModel>.NotFoundError("No Data Found.");
+            }
+
+            var response = new TransactionHistoryListResponseModel
+            {
+                TransactionList = dataList.ToList()
+            };
+
+            return Result<TransactionHistoryListResponseModel>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<TransactionHistoryListResponseModel>.SystemError(ex.Message);
+        }
+    }
+
+    public async Task<Result<TransactionHistoryDetailResponseModel>> PurchasedHistoryDetail(string transactionTicketId)
+    {
+        try
+        {
+            var detail = await _dapper.QueryStoredProcedureFirstOrDefault<TransactionHistoryDetailModel>(Queries.fn_gettransactionhistorydetail, null!);
+
+            if (detail is null)
+            {
+                return Result<TransactionHistoryDetailResponseModel>.NotFoundError("No Data Found.");
+            }
+
+            var response = new TransactionHistoryDetailResponseModel
+            {
+                TransactionDetail = detail
+            };
+
+            return Result<TransactionHistoryDetailResponseModel>.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<TransactionHistoryDetailResponseModel>.SystemError(ex.Message);
         }
     }
 

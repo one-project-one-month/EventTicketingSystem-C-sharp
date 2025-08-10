@@ -2,8 +2,6 @@
 
 public class QrCheckResponseModel
 {
-    public string QrString { get; set; }
-
     public string EventName { get; set; }
 
     public string EventCode { get; set; }

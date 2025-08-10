@@ -11,4 +11,5 @@ public class QrGenerateModel
     public DateTime EndDate { get; set; }
     public string EventName { get; set; } = string.Empty;
     public string VenueName { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
 }

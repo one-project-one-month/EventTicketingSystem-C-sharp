@@ -18,4 +18,14 @@ public class BL_Transaction
     {
         return await _daTransaction.ProcessTransaction(requestModel);
     }
+
+    public async Task<Result<TransactionHistoryListResponseModel>> GetTransactionHistoryList()
+    {
+        return await _daTransaction.PurchasedHistoryList();
+    }
+
+    public async Task<Result<TransactionHistoryDetailResponseModel>> GetTransactionHistoryDetail(string transactionCode)
+    {
+        return await _daTransaction.PurchasedHistoryDetail(transactionCode);
+    }
 }

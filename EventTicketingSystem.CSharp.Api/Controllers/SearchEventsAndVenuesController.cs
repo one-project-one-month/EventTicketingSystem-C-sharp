@@ -1,6 +1,4 @@
-﻿using EventTicketingSystem.CSharp.Shared;
-
-namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Search Menu")]
 [ApiController]
@@ -33,7 +31,6 @@ public class SearchEventsAndVenuesController : ControllerBase
         return Ok(result);
     }
 
-    //[HttpGet("{StartDate, EndDate}")]
     [HttpGet("BetweenDate")]
     public IActionResult SearchEventsByDate(DateTime StartDate, DateTime EndDate)
     {
