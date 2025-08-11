@@ -10,5 +10,5 @@ public class Queries
 
     public static string fn_gettransactionhistorylist { get; } = "SELECT * FROM fn_gettransactionhistorylist()";
 
-    public static string fn_gettransactionhistorydetail { get; } = "SELECT * FROM fn_gettransactionhistorydetail(@p_transaction_ticket_code)";
+    public static string fn_gettransactionhistorydetail { get; } = "SELECT * FROM fn_gettransactionhistorydetail(@transaction_code)";
 }

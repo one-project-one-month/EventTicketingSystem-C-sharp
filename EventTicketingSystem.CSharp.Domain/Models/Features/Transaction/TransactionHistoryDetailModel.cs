@@ -20,5 +20,5 @@ public class TransactionHistoryDetailModel
 
     public bool IsActive { get; set; }
 
-    public string Qr { get; set; } = string.Empty;
+    public int Qty { get; set; }
 }

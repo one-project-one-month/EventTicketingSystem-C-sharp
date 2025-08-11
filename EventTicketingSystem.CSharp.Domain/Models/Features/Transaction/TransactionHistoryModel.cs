@@ -11,6 +11,4 @@ public class TransactionHistoryModel
     public string EventName { get; set; } = string.Empty;
     
     public string TicketTypeName { get; set; } = string.Empty;
-
-    public decimal Quantity { get; set; }
 }
