@@ -229,4 +229,44 @@ public class DA_Venue : AuthorizationService
     }
 
     #endregion
+
+
+    #region Get Venue List For User
+
+    public async Task<Result<VenueListResponseModeForUser>> UserVenueList(int pageNo)
+    {
+        try
+        {
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
+
+            var paginatedResult = await _db.TblVenues
+                                    .Where(x => !x.Deleteflag)
+                                    .OrderByDescending(x => x.Venueid)
+                                    .ToPaginatedList(pagination);
+
+            if (!paginatedResult.ItemList.Any())
+                return Result<VenueListResponseModeForUser>.NotFoundError("No venue found.");
+
+            var model = new VenueListResponseModeForUser
+            {
+                VenueList = paginatedResult.ItemList
+                    .Select(VenueListModelForUser.FromTblVenue)
+                    .ToList(),
+                PageNo = paginatedResult.Pagination.PageNo,
+                PageSize = paginatedResult.Pagination.PageSize,
+                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+            };
+
+            return Result<VenueListResponseModeForUser>.Success(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<VenueListResponseModeForUser>.SystemError(ex.Message);
+        }
+    }
+
+    #endregion
+
+
 }
