@@ -34,22 +34,6 @@ public class EventController : ControllerBase
         return Ok(data);
     }
 
-    //[HttpGet("Top3Events")]
-    //[AllowAnonymous]
-    //public async Task<IActionResult> GetTop3Events()
-    //{
-    //    var data = await _blUserEvent.GetTop3Events();
-    //    return Ok(data);
-    //}
-
-    //[HttpGet("UserList/{pageNo}")]
-    //[AllowAnonymous]
-    //public async Task<IActionResult> UserEventList(int pageNo)
-    //{
-    //    var data = await _blUserEvent.GetEventList(pageNo);
-    //    return Ok(data);
-    //}
-
     [HttpGet("UserEvents/{pageNo}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetUserEventList(int pageNo)

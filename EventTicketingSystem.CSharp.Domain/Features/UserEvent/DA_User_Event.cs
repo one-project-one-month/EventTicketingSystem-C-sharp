@@ -1,14 +1,4 @@
-﻿using Azure;
-using DocumentFormat.OpenXml.Office.Word;
-using EventTicketingSystem.CSharp.Domain.Models.Features.UserEvent;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-namespace EventTicketingSystem.CSharp.Domain.Features.UserEvent;
+﻿namespace EventTicketingSystem.CSharp.Domain.Features.UserEvent;
 
 public class DA_User_Event
 {
@@ -23,6 +13,7 @@ public class DA_User_Event
         _appDbContext = appDbContext;
     }
 
+    #region UserEvents
     public async Task<Result<UserEventListResponseModel>> GetUserEvents(int pageNo)
     {
         var response = new Result<UserEventListResponseModel>();
@@ -81,6 +72,7 @@ public class DA_User_Event
             return response;
         }
     }
+    #endregion
 
     #region EventDetail
     public async Task<Result<EventDetailResponseModel>> GetEventDetails(string eventCode)
@@ -128,95 +120,5 @@ public class DA_User_Event
             return response;
         }
     }
-    #endregion
-
-    //#region Top3EventList 
-    //public async Task<Result<UserEventListResponseModel>> GetTop3EventList()
-    //{
-    //    var respones = new Result<UserEventListResponseModel>();
-    //    try
-    //    {
-    //        var eventList = await _appDbContext.TblEvents
-    //            .Join(_appDbContext.TblVenues,
-    //            ev => ev.Venuecode,
-    //            ve => ve.Venuecode,
-    //            (ev, ve) => new { ev, ve })
-    //            .Where(x => !x.ev.Deleteflag)
-    //            .OrderByDescending(x => x.ev.Soldoutcount)
-    //            .Take(3)
-    //            .ToListAsync();
-
-    //        var model = new UserEventListResponseModel()
-    //        {
-    //            EventList = eventList.Select(x =>
-    //            {
-    //                var events = UserEventListResponseModel.FromTblEvent(x.ev);
-    //                events.Address = x.ve.Address;
-    //                events.Venueimage = x.ve.Venueimage;
-    //                return events;
-    //            }).ToList()
-    //        };
-
-    //        respones = Result<UserEventListResponseModel>.Success(model);
-    //        return respones;
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogExceptionError(ex);
-    //        respones = Result<UserEventListResponseModel>.SystemError(ex.Message);
-    //        return respones;
-
-    //    }
-    //}
-    //#endregion
-
-    //#region GetEventList
-    //public async Task<Result<UserEventListResponseModel>> GetEventList(int pageNo)
-    //{
-    //    var response = new Result<UserEventListResponseModel>();
-
-    //    try
-    //    {
-    //        var pagination = new PaginationModel { PageNo = pageNo, PageSize = 9 };
-
-    //        var eventList = _appDbContext.TblEvents
-    //            .Join(_appDbContext.TblVenues,
-    //            ev => ev.Venuecode,
-    //            ve => ve.Venuecode,
-    //            (ev, ve) => new { ev, ve })
-    //            .Where(x => !x.ev.Deleteflag)
-    //            .OrderByDescending(x => x.ev.Eventid);
-
-    //        var paginationResult = await eventList.ToPaginatedList(pagination);
-
-    //        var model = new UserEventListResponseModel()
-    //        {
-    //            EventList = paginationResult.ItemList.Select(x =>
-    //            {
-    //                var events = UserEventListResponseModel.FromTblEvent(x.ev);
-    //                events.Address = x.ve.Address;
-    //                events.Venueimage = x.ve.Venueimage;
-    //                return events;
-    //            }).ToList(),
-    //            PageNo = paginationResult.Pagination.PageNo,
-    //            PageSize = paginationResult.Pagination.PageSize,
-    //            TotalRowCount = paginationResult.Pagination.TotalRowCount,
-
-    //        };
-
-    //        response = Result<UserEventListResponseModel>.Success(model); 
-    //        return response;
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogExceptionError(ex);
-    //        response = Result<UserEventListResponseModel>.SystemError(ex.Message);
-    //        return response;
-    //    }
-    //}
-    //#endregion
-
-    #region EventDetail
-
     #endregion
 }
