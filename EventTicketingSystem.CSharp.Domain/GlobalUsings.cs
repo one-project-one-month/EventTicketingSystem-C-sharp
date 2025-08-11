@@ -60,6 +60,7 @@ global using EventTicketingSystem.CSharp.Domain.Models.Features.Auth;
 global using EventTicketingSystem.CSharp.Domain.Models.Features.QR;
 global using EventTicketingSystem.CSharp.Domain.Models.Features.VenueType;
 global using EventTicketingSystem.CSharp.Domain.Models.Features.Dashboard;
+global using EventTicketingSystem.CSharp.Domain.Models.Features.UserEvent;
 global using SixLabors.ImageSharp;
 global using SixLabors.ImageSharp.Formats.Jpeg;
 global using SixLabors.ImageSharp.PixelFormats;
