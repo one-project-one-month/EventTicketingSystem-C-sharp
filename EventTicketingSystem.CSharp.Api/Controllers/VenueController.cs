@@ -84,4 +84,20 @@ public class VenueController : ControllerBase
             return StatusCode(500, $"Export failed: {ex.Message}");
         }
     }
+
+    [HttpGet("UserVenueList/{pageNo}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UserVenueList(int pageNo)
+    {
+        var data = await _blVenue.UserVenueList(pageNo);
+        return Ok(data);
+    }
+
+    [HttpGet("UserVenueDetail/{venueCode}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UserVenueDetail(string venueCode)
+    {
+        var data = await _blVenue.Edit(venueCode);
+        return Ok(data);
+    }
 }
