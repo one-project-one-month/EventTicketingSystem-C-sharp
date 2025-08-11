@@ -16,6 +16,8 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors();
+
 builder.Services.AddSerilog();
 
 builder.Services.AddControllers();
@@ -109,6 +111,11 @@ catch (Exception ex)
 {
     Console.WriteLine(ex.ToString());
 }
+
+app.UseCors(builder =>
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader());
 
 app.UseAuthentication();
 
