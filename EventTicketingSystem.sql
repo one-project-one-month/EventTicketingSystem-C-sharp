@@ -407,47 +407,6 @@ $$;
 
 alter function public.sp_ticket_info(varchar) owner to postgres;
 
-create function public.fn_gettransactionhistorydetail(p_transaction_ticket_code text)
-    returns TABLE(email text, eventname text, eventcode text, eventstatus text, tickettypename text, ticketprice numeric, paymenttype text, transactiondate timestamp without time zone, isactive bit, qr text)
-    language plpgsql
-as
-$$
-BEGIN
-    RETURN QUERY
-        SELECT t.email::text,
-               e.eventname::text,
-               e.eventcode::text,
-               e.eventstatus::text,
-               ttp.tickettypename::text,
-               tp.ticketprice,
-               t.paymenttype::text,
-               t.transactiondate,
-               CASE WHEN e.isactive THEN B'1' ELSE B'0' END,
-               tt.qrimage::text
-        FROM Tbl_Transactionticket tt
-                 JOIN Tbl_Transaction t
-                      ON t.transactioncode = tt.transactioncode
-                          AND t.deleteflag = false
-                 JOIN Tbl_Ticket tk
-                      ON tk.ticketcode = tt.ticketcode
-                          AND tk.deleteflag = false
-                 JOIN Tbl_Ticketprice tp
-                      ON tp.ticketpricecode = tk.ticketpricecode
-                          AND tp.deleteflag = false
-                 JOIN Tbl_Tickettype ttp
-                      ON ttp.tickettypecode = tp.tickettypecode
-                          AND ttp.deleteflag = false
-                 JOIN Tbl_Event e
-                      ON e.eventcode = t.eventcode
-                          AND e.deleteflag = false
-                          AND e.isactive = true
-        WHERE tt.transactionticketid = p_transaction_ticket_code
-          AND tt.deleteflag = false;
-END;
-$$;
-
-alter function public.fn_gettransactionhistorydetail(text) owner to postgres;
-
 create function public.get_transactionhistorylist()
     returns TABLE(transaction_ticket_code text, email text, transaction_date timestamp without time zone, event_name text, ticket_type_name text)
     language plpgsql
@@ -479,8 +438,52 @@ $$;
 
 alter function public.get_transactionhistorylist() owner to postgres;
 
+create function public.fn_gettransactionhistorydetail(transaction_code text)
+    returns TABLE(email text, eventname text, eventcode text, eventstatus text, tickettypename text, ticketprice numeric, paymenttype text, transactiondate timestamp without time zone, isactive boolean, qty bigint)
+    language plpgsql
+as
+$$
+BEGIN
+    RETURN QUERY
+        SELECT t.email::text,
+               e.eventname::text,
+               e.eventcode::text,
+               e.eventstatus::text,
+               ttp.tickettypename::text,
+               tp.ticketprice,
+               t.paymenttype::text,
+               t.transactiondate,
+               e.isactive,
+               count(t.transactioncode)                     as qty
+        FROM Tbl_Transactionticket tt
+                 JOIN Tbl_Transaction t
+                      ON t.transactioncode = tt.transactioncode
+                          AND t.deleteflag = false
+                 JOIN Tbl_Ticket tk
+                      ON tk.ticketcode = tt.ticketcode
+                          AND tk.deleteflag = false
+                 JOIN Tbl_Ticketprice tp
+                      ON tp.ticketpricecode = tk.ticketpricecode
+                          AND tp.deleteflag = false
+                 JOIN Tbl_Tickettype ttp
+                      ON ttp.tickettypecode = tp.tickettypecode
+                          AND ttp.deleteflag = false
+                 JOIN Tbl_Event e
+                      ON e.eventcode = t.eventcode
+                          AND e.deleteflag = false
+                          AND e.isactive = true
+        WHERE tt.transactioncode = transaction_code
+          AND tt.deleteflag = false
+        group by t.transactioncode, t.email, e.eventname, e.eventcode, e.eventstatus, ttp.tickettypename,
+                 tp.ticketprice,
+                 t.paymenttype, t.transactiondate, e.isactive;
+END;
+$$;
+
+alter function public.fn_gettransactionhistorydetail(text) owner to postgres;
+
 create function public.fn_gettransactionhistorylist()
-    returns TABLE(transactioncode text, email text, transactiondate timestamp without time zone, eventname text, tickettypename text, qty bigint)
+    returns TABLE(transactioncode text, email text, transactiondate timestamp without time zone, eventname text, tickettypename text)
     language plpgsql
 as
 $$
@@ -490,8 +493,7 @@ BEGIN
                tr.email::text,
                tr.transactiondate,
                e.eventname::text,
-               string_agg(DISTINCT tt.tickettypename::text, ', ') AS tickettypename,
-               COUNT(*)                                           AS qty
+               string_agg(DISTINCT tt.tickettypename::text, ', ') AS tickettypename
         FROM tbl_transaction tr
                  JOIN tbl_event e
                       ON e.eventcode = tr.eventcode

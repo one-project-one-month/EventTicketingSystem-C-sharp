@@ -347,11 +347,13 @@ public class DA_Transaction : AuthorizationService
         }
     }
 
-    public async Task<Result<TransactionHistoryDetailResponseModel>> PurchasedHistoryDetail(string transactionTicketId)
+    public async Task<Result<TransactionHistoryDetailResponseModel>> PurchasedHistoryDetail(string transactionCode)
     {
         try
         {
-            var detail = await _dapper.QueryStoredProcedureFirstOrDefault<TransactionHistoryDetailModel>(Queries.fn_gettransactionhistorydetail, null!);
+            var param = new { transaction_code = transactionCode };
+
+            var detail = await _dapper.QueryStoredProcedureFirstOrDefault<TransactionHistoryDetailModel>(Queries.fn_gettransactionhistorydetail, param);
 
             if (detail is null)
             {

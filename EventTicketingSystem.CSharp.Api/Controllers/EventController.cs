@@ -1,4 +1,6 @@
-﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
+﻿using EventTicketingSystem.CSharp.Domain.Features.UserEvent;
+
+namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Event")]
 [Route("api/[controller]")]
@@ -6,11 +8,13 @@
 public class EventController : ControllerBase
 {
     private readonly BL_Event _blEvent;
+    private readonly BL_User_Event _blUserEvent;
     private readonly ExportService _exportService;
 
-    public EventController(BL_Event blEvent, ExportService exportService)
+    public EventController(BL_Event blEvent, BL_User_Event bL_User_Event,ExportService exportService)
     {
         _blEvent = blEvent;
+        _blUserEvent = bL_User_Event;
         _exportService = exportService;
     }
 
@@ -27,6 +31,21 @@ public class EventController : ControllerBase
     public async Task<IActionResult> Edit(string eventCode)
     {
         var data = await _blEvent.Edit(eventCode);
+        return Ok(data);
+    }
+
+    [HttpGet("UserEvents/{pageNo}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetUserEventList(int pageNo)
+    {
+        var data = await _blUserEvent.GetUserEventList(pageNo);
+        return Ok(data);
+    }
+
+    [HttpGet("UserEventDetails/{eventCode}")]
+    public async Task<IActionResult> GetUserEventDetails(string eventCode)
+    {
+        var data = await _blUserEvent.GetUserEventDetails(eventCode);
         return Ok(data);
     }
 
