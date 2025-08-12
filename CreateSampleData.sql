@@ -198,27 +198,27 @@ INSERT INTO public.tbl_ticketprice (ticketpriceid, ticketpricecode, tickettypeco
 
 
 -- Sample data for tbl_ticket
-INSERT INTO public.tbl_ticket (ticketid, ticketcode, ticketpricecode, isused, createdby, createdat, modifiedby, modifiedat, deleteflag) VALUES
-('tic001', 'TC000001', 'TP000001', FALSE, 'customer1', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic002', 'TC000002', 'TP000001', FALSE, 'customer2', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic003', 'TC000003', 'TP000002', TRUE, 'customer3', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic004', 'TC000004', 'TP000002', FALSE, 'customer4', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic005', 'TC000005', 'TP000003', FALSE, 'customer5', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic006', 'TC000006', 'TP000003', TRUE, 'customer6', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic007', 'TC000007', 'TP000004', FALSE, 'customer7', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic008', 'TC000008', 'TP000005', FALSE, 'customer8', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic009', 'TC000009', 'TP000006', FALSE, 'customer9', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic010', 'TC000010', 'TP000007', FALSE, 'customer10', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic011', 'TC000011', 'TP000008', FALSE, 'customer11', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic012', 'TC000012', 'TP000009', TRUE, 'customer12', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic013', 'TC000013', 'TP000010', FALSE, 'customer13', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic014', 'TC000014', 'TP000011', FALSE, 'customer14', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic015', 'TC000015', 'TP000012', FALSE, 'customer15', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic016', 'TC000016', 'TP000013', TRUE, 'customer16', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic017', 'TC000017', 'TP000014', FALSE, 'customer17', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic018', 'TC000018', 'TP000015', FALSE, 'customer18', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic019', 'TC000019', 'TP000016', FALSE, 'customer19', '2025-07-30 14:35:24', NULL, NULL, FALSE),
-('tic020', 'TC000020', 'TP000017', FALSE, 'customer20', '2025-07-30 14:35:24', NULL, NULL, FALSE);
+INSERT INTO public.tbl_ticket (ticketid, ticketcode, ticketpricecode, isused, soldout, createdby, createdat, modifiedby, modifiedat, deleteflag) VALUES
+('tic001', 'TC000001', 'TP000001', FALSE, TRUE, 'customer1', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic002', 'TC000002', 'TP000001', FALSE, TRUE, 'customer2', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic003', 'TC000003', 'TP000002', TRUE,  TRUE, 'customer3', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic004', 'TC000004', 'TP000002', FALSE, TRUE,'customer4', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic005', 'TC000005', 'TP000003', FALSE, TRUE,'customer5', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic006', 'TC000006', 'TP000003', TRUE, TRUE,  'customer6', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic007', 'TC000007', 'TP000004', FALSE, TRUE, 'customer7', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic008', 'TC000008', 'TP000005', FALSE, TRUE,  'customer8', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic009', 'TC000009', 'TP000006', FALSE, TRUE,  'customer9', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic010', 'TC000010', 'TP000007', FALSE, TRUE,  'customer10', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic011', 'TC000011', 'TP000008', FALSE, TRUE,  'customer11', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic012', 'TC000012', 'TP000009', TRUE, TRUE,  'customer12', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic013', 'TC000013', 'TP000010', FALSE, TRUE,  'customer13', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic014', 'TC000014', 'TP000011', FALSE, TRUE,  'customer14', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic015', 'TC000015', 'TP000012', FALSE, TRUE,  'customer15', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic016', 'TC000016', 'TP000013', TRUE, TRUE,  'customer16', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic017', 'TC000017', 'TP000014', FALSE, TRUE,  'customer17', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic018', 'TC000018', 'TP000015', FALSE, TRUE, 'customer18', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic019', 'TC000019', 'TP000016', FALSE, TRUE,  'customer19', '2025-07-30 14:35:24', NULL, NULL, FALSE),
+('tic020', 'TC000020', 'TP000017', FALSE, TRUE,  'customer20', '2025-07-30 14:35:24', NULL, NULL, FALSE);
 
 -- Sample data for tbl_transaction
 INSERT INTO public.tbl_transaction (transactionid, transactioncode, email, eventcode, status, paymenttype, transactiondate, totalamount, createdby, createdat, modifiedby, modifiedat, deleteflag) VALUES
