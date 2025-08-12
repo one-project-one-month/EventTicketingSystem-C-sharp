@@ -37,7 +37,7 @@ public class VerificationCodeController : ControllerBase
 
     [HttpPost("Create")]
     [AllowAnonymous]
-    public async Task<IActionResult> Create([FromBody] VCRequestModel requestModel)
+    public async Task<IActionResult> Create([FromBody] VCCreateRequestModel requestModel)
     {
         return Ok(await _vcService.Create(requestModel));
     }

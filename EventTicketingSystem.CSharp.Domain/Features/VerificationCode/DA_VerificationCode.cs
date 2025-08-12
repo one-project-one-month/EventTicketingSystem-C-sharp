@@ -213,7 +213,7 @@ public class DA_VerificationCode : AuthorizationService
 
     #region Create Verification Code
 
-    public async Task<Result<VCResponseModel>> Create(VCRequestModel reqData)
+    public async Task<Result<VCResponseModel>> Create(VCCreateRequestModel reqData)
     {
         if (reqData.Email.IsNullOrEmpty() || !reqData.Email!.IsValidEmail())
         {

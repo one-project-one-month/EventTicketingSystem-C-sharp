@@ -24,7 +24,7 @@ public class BL_VerificationCode
         return await _daService.GetByEmail(email);
     }
 
-    public async Task<Result<VCResponseModel>> Create(VCRequestModel request)
+    public async Task<Result<VCResponseModel>> Create(VCCreateRequestModel request)
     {
         return await _daService.Create(request);
     }
