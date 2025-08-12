@@ -62,8 +62,8 @@ public class DA_QrCode
         }
 
 
-        response.EventName = qrParts[0];
-        response.EventCode = qrParts[1];
+        response.EventCode = qrParts[0];
+        response.EventName = qrParts[1];
         response.EventDate = qrParts[2];
         response.EventTimeFrom = qrParts[3];
         var gateOpenTime = response.EventTimeFrom.ToDateTime();
