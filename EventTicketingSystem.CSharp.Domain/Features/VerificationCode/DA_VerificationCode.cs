@@ -34,23 +34,21 @@ public class DA_VerificationCode : AuthorizationService
 
     #region Get Verification Code List
 
-    public async Task<Result<VCResponseModel>> List(int pageNo)
+    public async Task<Result<VCResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
-            var paginatedResult = await _db.TblVerifications
+            var vCodeList = await _db.TblVerifications
                                     .Where(x => !x.Deleteflag)
                                     .OrderByDescending(x => x.Verificationid)
-                                    .ToPaginatedList(pagination);
+                                    .ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!vCodeList.Any())
                 return Result<VCResponseModel>.NotFoundError("No Verification Found.");
 
             var model = new VCResponseModel
             {
-                VerificationCodes = paginatedResult.ItemList.Select(x => new VCodeModel
+                VerificationCodes = vCodeList.Select(x => new VCodeModel
                 {
                     VerificationId = x.Verificationid,
                     VerificationCode = x.Verificationcode,
@@ -63,10 +61,6 @@ public class DA_VerificationCode : AuthorizationService
                     Modifiedby = x.Modifiedby,
                     Deleteflag = false
                 }).ToList(),
-
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
             };
 
             return Result<VCResponseModel>.Success(model);

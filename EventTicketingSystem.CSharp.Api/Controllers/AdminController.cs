@@ -15,10 +15,10 @@ public class AdminController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List/{pageNo}")]
-    public async Task<IActionResult> List(int pageNo)
+    [HttpGet("List")]
+    public async Task<IActionResult> List()
     {
-        var data = await _blAdmin.List(pageNo);
+        var data = await _blAdmin.List();
         return Ok(data);
     }
 

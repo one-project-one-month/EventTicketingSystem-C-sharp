@@ -1,6 +1,6 @@
 ﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.Admin;
 
-public class AdminListResponseModel : PaginationModel
+public class AdminListResponseModel
 {
     public List<AdminListModel>? AdminList { get; set; }
 }

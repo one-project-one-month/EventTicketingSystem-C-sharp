@@ -18,28 +18,23 @@ public class DA_VenueType : AuthorizationService
 
     #region Venue Type List
 
-    public async Task<Result<VenueTypeListResponseModel>> List(int pageNo)
+    public async Task<Result<VenueTypeListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
-            var paginatedResult = await _db.TblVenuetypes
+            var venueTypeList = await _db.TblVenuetypes
                                     .Where(x => !x.Deleteflag)
                                     .OrderByDescending(x => x.Venuetypeid)
-                                    .ToPaginatedList(pagination);
+                                    .ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!venueTypeList.Any() || venueTypeList is null)
                 return Result<VenueTypeListResponseModel>.NotFoundError("Venue Type Not Found.");
 
             var model = new VenueTypeListResponseModel
             {
-                VenueTypeList = paginatedResult.ItemList
+                VenueTypeList = venueTypeList
                     .Select(VenueTypeListModel.FromTblVenueType)
-                    .ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+                    .ToList()
             };
 
             return Result<VenueTypeListResponseModel>.Success(model);

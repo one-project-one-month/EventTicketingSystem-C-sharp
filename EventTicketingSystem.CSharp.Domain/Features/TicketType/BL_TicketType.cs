@@ -9,9 +9,9 @@ public class BL_TicketType
         _da_ticketType = da_ticketType;
     }
 
-    public async Task<Result<TicketTypeListResponseModel>> List(int pageNo)
+    public async Task<Result<TicketTypeListResponseModel>> List()
     {
-        var lst = await _da_ticketType.List(pageNo);
+        var lst = await _da_ticketType.List();
         return lst;
     }
 

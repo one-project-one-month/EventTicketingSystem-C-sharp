@@ -9,9 +9,9 @@ public class BL_BusinessOwner
         _daService = dataAccess;
     }
 
-    public async Task<Result<BusinessOwnerListResponseModel>> List(int pageNo)
+    public async Task<Result<BusinessOwnerListResponseModel>> List()
     {
-        return await _daService.List(pageNo);
+        return await _daService.List();
     }
 
     public async Task<Result<BusinessOwnerEditResponseModel>> Edit(string ownerCode)

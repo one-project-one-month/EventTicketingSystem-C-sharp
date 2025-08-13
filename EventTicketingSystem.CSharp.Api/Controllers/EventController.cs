@@ -18,11 +18,11 @@ public class EventController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List/{pageNo}")]
+    [HttpGet("List")]
     [AllowAnonymous]
-    public async Task<IActionResult> List(int pageNo)
+    public async Task<IActionResult> List()
     {
-        var data = await _blEvent.List(pageNo);
+        var data = await _blEvent.List();
         return Ok(data);
     }
 

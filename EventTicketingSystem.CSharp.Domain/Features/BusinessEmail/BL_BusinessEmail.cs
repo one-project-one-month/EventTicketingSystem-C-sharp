@@ -20,9 +20,9 @@ public class BL_BusinessEmail
         return data;
     }
 
-    public async Task<Result<BusinessEmailListResponseModel>> List(int pageNo)
+    public async Task<Result<BusinessEmailListResponseModel>> List()
     {
-        var data = await _da_BusinessEmail.List(pageNo);
+        var data = await _da_BusinessEmail.List();
         return data;
     }
 }

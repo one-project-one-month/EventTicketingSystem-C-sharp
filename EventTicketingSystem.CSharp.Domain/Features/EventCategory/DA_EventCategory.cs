@@ -18,28 +18,23 @@ public class DA_EventCategory : AuthorizationService
 
     #region Event Category List
 
-    public async Task<Result<EventCategoryListResponseModel>> List(int pageNo)
+    public async Task<Result<EventCategoryListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
-            var paginatedResult = await _db.TblEventcategories
+            var eventCategoryList = await _db.TblEventcategories
                                     .Where(x => !x.Deleteflag)
                                     .OrderByDescending(x => x.Eventcategoryid)
-                                    .ToPaginatedList(pagination);
+                                    .ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!eventCategoryList.Any())
                 return Result<EventCategoryListResponseModel>.NotFoundError("Event Type Not Found.");
 
             var model = new EventCategoryListResponseModel
             {
-                EventCategories = paginatedResult.ItemList
+                EventCategories = eventCategoryList
                     .Select(EventCategoryListModel.FromTblCategory)
                     .ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
             };
 
             return Result<EventCategoryListResponseModel>.Success(model);

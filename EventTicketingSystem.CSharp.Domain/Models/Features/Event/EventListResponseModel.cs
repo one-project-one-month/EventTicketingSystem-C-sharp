@@ -1,6 +1,6 @@
 ﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.Event;
 
-public class EventListResponseModel : PaginationModel
+public class EventListResponseModel
 {
     public List<EventListModel>? EventList { get; set; }
 }

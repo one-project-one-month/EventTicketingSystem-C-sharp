@@ -18,28 +18,24 @@ public class DA_Venue : AuthorizationService
 
     #region Get Venue List
 
-    public async Task<Result<VenueListResponseModel>> List(int pageNo)
+    public async Task<Result<VenueListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
-            var paginatedResult = await _db.TblVenues
+            
+            var venueList = await _db.TblVenues
                                     .Where(x => !x.Deleteflag)
                                     .OrderByDescending(x => x.Venueid)
-                                    .ToPaginatedList(pagination);
+                                    .ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!venueList.Any() || venueList is null)
                 return Result<VenueListResponseModel>.NotFoundError("No venue found.");
 
             var model = new VenueListResponseModel
             {
-                VenueList = paginatedResult.ItemList
+                VenueList = venueList
                     .Select(VenueListModel.FromTblVenue)
-                    .ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+                    .ToList()
             };
 
             return Result<VenueListResponseModel>.Success(model);
@@ -94,7 +90,7 @@ public class DA_Venue : AuthorizationService
         string addons = string.Empty;
 
         try
-        {   
+        {
             if (requestModel.VenueImage != null && requestModel.VenueImage.Count > 0)
             {
                 var uploadResults = await EnumDirectory.VenueImage.UploadFilesAsync(requestModel.VenueImage);
@@ -148,8 +144,8 @@ public class DA_Venue : AuthorizationService
         {
             return Result<VenueUpdateResponseModel>.UserInputError("Venue code cannot be null or empty.");
         }
-        
-        if (requestModel.Address.IsNullOrEmpty() || requestModel.Description.IsNullOrEmpty() || 
+
+        if (requestModel.Address.IsNullOrEmpty() || requestModel.Description.IsNullOrEmpty() ||
             requestModel.Facilities.IsNullOrEmpty() || requestModel.Addons.IsNullOrEmpty())
         {
             return Result<VenueUpdateResponseModel>.UserInputError("All fields are empty. Please provide at least one field to update.");
@@ -243,7 +239,7 @@ public class DA_Venue : AuthorizationService
                                     .Join(_db.TblVenuetypes,
                                     ve => ve.Venuetypecode,
                                     vt => vt.Venuetypecode,
-                                    (ve, vt) => new {ve, vt})
+                                    (ve, vt) => new { ve, vt })
                                     .Where(x => !x.ve.Deleteflag)
                                     .OrderByDescending(x => x.ve.Venueid)
                                     .ToPaginatedList(pagination);

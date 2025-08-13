@@ -18,12 +18,10 @@ public class DA_Event : AuthorizationService
 
     #region Event List
 
-    public async Task<Result<EventListResponseModel>> List(int pageNo)
+    public async Task<Result<EventListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
             var query = from e in _db.TblEvents
                         join b in _db.TblBusinessowners on e.Businessownercode equals b.Businessownercode
                         where !e.Deleteflag
@@ -34,22 +32,19 @@ public class DA_Event : AuthorizationService
                             BusinessOwnerName = b.Fullname
                         };
 
-            var paginatedResult = await query.ToPaginatedList(pagination);
+            var eventList = await query.ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!eventList.Any() || eventList is null)
                 return Result<EventListResponseModel>.NotFoundError("No event found.");
 
             var model = new EventListResponseModel
             {
-                EventList = paginatedResult.ItemList.Select(x =>
+                EventList = eventList.Select(x =>
                 {
                     var eventModel = EventListModel.FromTblEvent(x.EventEntity);
                     eventModel.Businessownername = x.BusinessOwnerName;
                     return eventModel;
                 }).ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
             };
 
             return Result<EventListResponseModel>.Success(model);

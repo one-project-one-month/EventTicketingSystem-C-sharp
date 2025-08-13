@@ -21,33 +21,23 @@ public class DA_Admin : AuthorizationService
 
     #region Get Admin List
 
-    public async Task<Result<AdminListResponseModel>> List(int pageNo)
+    public async Task<Result<AdminListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
+            var admins = await _db.TblAdmins
+                            .Where(x=>!x.Deleteflag)
+                            .OrderByDescending(x=>x.Adminid)
+                            .ToListAsync();            
 
-            var paginatedResult = await _db.TblAdmins
-                                .Where(x => x.Deleteflag == false)
-                                .OrderByDescending(x => x.Adminid)
-                                .ToPaginatedList(pagination);
-
-            if (!paginatedResult.ItemList.Any())
+            if (!admins.Any())
             {
                 return Result<AdminListResponseModel>.Success("No admin user found.");
-            }
-
-            var dataList = new PaginatedListModel<AdminListModel>(
-                paginatedResult.ItemList.Select(AdminListModel.FromTblAdmin).ToList(),
-                paginatedResult.Pagination
-            );
+            };
 
             var model = new AdminListResponseModel
             {
-                AdminList = dataList.ItemList,
-                PageNo = dataList.Pagination.PageNo,
-                PageSize = dataList.Pagination.PageSize,
-                TotalRowCount = dataList.Pagination.TotalRowCount
+                AdminList = admins.Select(AdminListModel.FromTblAdmin).ToList(),
             };
 
             return Result<AdminListResponseModel>.Success(model);

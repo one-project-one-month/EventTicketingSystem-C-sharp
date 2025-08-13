@@ -14,11 +14,11 @@ public class VenueController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List/{pageNo}")]
+    [HttpGet("List")]
     [AllowAnonymous]
-    public async Task<IActionResult> List(int pageNo)
+    public async Task<IActionResult> List()
     {
-        var data = await _blVenue.List(pageNo);
+        var data = await _blVenue.List();
         return Ok(data);
     }
 
