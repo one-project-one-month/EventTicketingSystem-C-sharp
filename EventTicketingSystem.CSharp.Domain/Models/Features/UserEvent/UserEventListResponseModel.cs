@@ -1,31 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using EventTicketingSystem.CSharp.Database.AppDbContext;
+using System;
+namespace EventTicketingSystem.CSharp.Domain.Models.Features.UserEvent;
 
-namespace EventTicketingSystem.CSharp.Domain.Models.Features.UserEvent
+public class UserEventListResponseModel: PaginationModel
 {
-    public class UserEventListResponseModel: PaginationModel
-    {
-        public List<UserEventResponseModel> EventList { get; set; }
-        public List<UserEventResponseModel> Top3Events { get; set; }
-     }
+    public List<UserEventResponseModel> EventList { get; set; }
 
-    public class UserEventResponseModel
-    {
-        public string? Eventcode { get; set; }
-        public string? Eventname { get; set; }
-        public string? Address { get; set; }
-        public string? Venueimage { get; set; }
+    public List<UserEventResponseModel> Top3Events { get; set; }
+ }
 
-        public static UserEventResponseModel FromTblEvent(TblEvent tblEvent)
+public class UserEventResponseModel
+{
+    public string? Eventcode { get; set; }
+
+    public string? Eventname { get; set; }
+
+    public string? Address { get; set; }
+
+    public List<string>? Venueimage { get; set; }
+
+    public static UserEventResponseModel FromTblEvent(TblEvent tblEvent, TblVenue tblVenue, string userDomainUrl)
+    {
+        var eventModel = new UserEventResponseModel
         {
-            return new UserEventResponseModel
+            Eventcode = tblEvent.Eventcode,
+            Eventname = tblEvent.Eventname,
+            Venueimage = new List<string>(),
+            Address = tblVenue.Address
+        };
+
+        if (!tblVenue.Venueimage.IsNullOrEmpty())
+        {
+            eventModel.Venueimage = tblVenue.Venueimage
+                .Split([','], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            foreach (var image in eventModel.Venueimage)
             {
-                Eventcode = tblEvent.Eventcode,
-                Eventname = tblEvent.Eventname
-            };
+                if (!image.IsNullOrEmpty())
+                {
+                    var baseUrl = userDomainUrl!.EndsWith("/") ? userDomainUrl : userDomainUrl + "/";
+                    var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
+
+                    eventModel.Venueimage = new List<string> { $"{baseUrl}{imagePath}" };
+                }
+            }
         }
+
+        return eventModel;
     }
 }

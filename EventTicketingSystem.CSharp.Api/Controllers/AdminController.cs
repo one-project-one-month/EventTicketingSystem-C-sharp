@@ -16,7 +16,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpGet("List/{pageNo}")]
-    public async Task<IActionResult> List(int pageNo)
+    public async Task<IActionResult> List(int pageNo = 1)
     {
         var data = await _blAdmin.List(pageNo);
         return Ok(data);

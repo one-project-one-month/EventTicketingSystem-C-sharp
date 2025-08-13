@@ -31,7 +31,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="QrImage\" />
+	  <Folder Include="wwwroot\VenueImage\" />
+	  <Folder Include="wwwroot\QrImage\" />
+	  <Folder Include="wwwroot\ProfileImage\" />
 	</ItemGroup>
 
 </Project>

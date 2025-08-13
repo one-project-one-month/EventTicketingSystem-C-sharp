@@ -1,65 +1,58 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using EventTicketingSystem.CSharp.Domain.Models.Features.Home;
+﻿namespace EventTicketingSystem.CSharp.Domain.Features.Home;
 
-namespace EventTicketingSystem.CSharp.Domain.Features.Home;
-
-public class DA_Home : AuthorizationService
+public class DA_Home
 {
     private readonly AppDbContext _db;
     private readonly ILogger<DA_Admin> _logger;
-    private readonly CommonService _commonService;
-    private string specialCharacters = @"!@#$%^&*(),.?""{}|<>";
-    private int minLength = 8;
-    private int maxLength = 20;
+    private readonly IConfiguration _configuration;
 
-    public DA_Home(IHttpContextAccessor httpContextAccessor,
-                    ILogger<DA_Admin> logger,
+    public DA_Home(ILogger<DA_Admin> logger,
                     AppDbContext db,
-                    CommonService commonService) : base(httpContextAccessor)
+                    IConfiguration configuration)
     {
         _logger = logger;
         _db = db;
-        _commonService = commonService;
+        _configuration = configuration;
     }
 
-    public async Task<Result<HomeResponseModels>> Home()
+    public async Task<Result<HomeResponseModel>> Home()
     {
         try
         {
-
-            var EventResult = await (
-                    from e in _db.TblEvents
-                    join v in _db.TblVenues on e.Venuecode equals v.Venuecode
-                    where e.Deleteflag == false
-                    orderby e.Soldoutcount descending
-                    select new
-                    {
-                        e.Eventid,
-                        e.Eventcode,
-                        e.Eventname,
-                        Address = v.Address,
-                        Venueimage = v.Venueimage,
-                    }
-                )
-                .Take(3)
-                .ToListAsync();
+            var EventResult = await (from e in _db.TblEvents
+                                     join v in _db.TblVenues
+                                         on e.Venuecode equals v.Venuecode
+                                     where e.Deleteflag == false
+                                     orderby e.Soldoutcount descending
+                                     select new
+                                     {
+                                         e.Eventid,
+                                         e.Eventcode,
+                                         e.Eventname,
+                                         v.Address,
+                                         v.Venueimage,
+                                     }
+                                    )
+                                    .Take(3)
+                                    .ToListAsync();
 
 
             var EventResultCount = EventResult.Count();
             if (EventResultCount == 0)
             {
-                return Result<HomeResponseModels>.NotFoundError("No events found.");
+                return Result<HomeResponseModel>.NotFoundError("No events found.");
             }
 
-            var top3Events = new Top3EventsResponseModels
+            var domainUrl = _configuration.GetSection("UserDomainUrl").Value;
+            var top3Events = new TopThreeUserEventResponseModel
             {
-                Events = EventResult.Select(e => new EventsResponseModels
+                Events = EventResult.Select(e => new HomeUserEventResponseModel
                 {
                     Eventid = e.Eventid,
                     Eventcode = e.Eventcode,
                     Eventname = e.Eventname,
                     Address = e.Address,
-                    Venueimage = e.Venueimage,
+                    Venueimage = ProcessVenueImages(e.Venueimage, domainUrl!)!,
                 }).ToList()
             };
 
@@ -85,7 +78,7 @@ public class DA_Home : AuthorizationService
                             v.Capacity,
                             v.Venueimage,
                             v.Address,
-                            Venuetypename = vt.Venuetypename,
+                            vt.Venuetypename,
                         }
                     )
                     .ToListAsync();
@@ -93,18 +86,18 @@ public class DA_Home : AuthorizationService
             var VenuesResultCount = VenuesResult.Count();
             if (VenuesResultCount == 0)
             {
-                return Result<HomeResponseModels>.NotFoundError("No Venues found.");
+                return Result<HomeResponseModel>.NotFoundError("No Venues found.");
             }
 
-            var Top3Venues = new Top3VenuesResponseModels
+            var Top3Venues = new TopThreeVenueResponseModel
             {
-                Venues = VenuesResult.Select(v => new VenuesResponseModels
+                Venues = VenuesResult.Select(v => new UserVenueResponseModel
                 {
                     Venueid = v.Venueid,
                     Venuecode = v.Venuecode,
                     Venuename = v.Venuename,
                     Capacity = v.Capacity,
-                    Venueimage = v.Venueimage,
+                    Venueimage = ProcessVenueImages(v.Venueimage, domainUrl!)!,
                     Address = v.Address,
                     Venuetypename = v.Venuetypename
                 }).ToList()
@@ -140,10 +133,10 @@ public class DA_Home : AuthorizationService
                 ? (ticketSoldoutSum * 100) / Totalticketquantity
                 : 0;
 
-            var Top3 = new HomeResponseModels()
+            var Top3 = new HomeResponseModel()
             {
                 TopThreeEvents = top3Events,
-                HomeStatus = new HomeStatusResponseModels
+                HomeStatus = new HomeStatusResponseModel
                 {
                     CompletedEvents = CompletedEventsCount,
                     ActiveEvents = ActiveEventsCount,
@@ -151,15 +144,36 @@ public class DA_Home : AuthorizationService
                     TicketsSoldPercentage = ticketSoldoutPercentage
                 },
                 TopThreeVenues = Top3Venues
-                
+
             };
 
-            return Result<HomeResponseModels>.Success(Top3);
+            return Result<HomeResponseModel>.Success(Top3);
         }
         catch (Exception ex)
         {
             _logger.LogExceptionError(ex);
-            return Result<HomeResponseModels>.SystemError(ex.Message);
+            return Result<HomeResponseModel>.SystemError(ex.Message);
         }
+    }
+
+    private List<string>? ProcessVenueImages(string? venueImages, string domainUrl)
+    {
+        if (string.IsNullOrWhiteSpace(venueImages))
+        {
+            return null!;
+        }
+
+        var baseUrl = domainUrl.TrimEnd('/') + "/";
+
+        return venueImages
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(image =>
+            {
+                var normalizedPath = image.TrimStart('/', '\\');
+                return $"{baseUrl}{normalizedPath}";
+            })
+            .ToList();
     }
 }

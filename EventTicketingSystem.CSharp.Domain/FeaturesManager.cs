@@ -1,7 +1,3 @@
-using EventTicketingSystem.CSharp.Domain.Features.Home;
-using EventTicketingSystem.CSharp.Domain.Features.Transaction;
-using EventTicketingSystem.CSharp.Domain.Features.UserEvent;
-
 namespace EventTicketingSystem.CSharp.Domain;
 
 public static class FeaturesManager
@@ -19,6 +15,14 @@ public static class FeaturesManager
     public static void UseLogicalFileService(this IApplicationBuilder app, string physicalPath, string folderName)
     {
         Directory.CreateDirectory(Path.Combine(physicalPath, folderName));
+
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=604800");
+            }
+        });
 
         app.UseFileServer(new FileServerOptions
         {
@@ -62,7 +66,7 @@ public static class FeaturesManager
         services.AddScoped<EmailService>();
         services.AddScoped<ExportService>();
         services.AddScoped<JwtService>();
-                
+
         return services;
     }
 

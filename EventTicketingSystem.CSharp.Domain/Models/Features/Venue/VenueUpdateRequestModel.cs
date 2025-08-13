@@ -13,5 +13,5 @@ public class VenueUpdateRequestModel
 
     public List<string>? Addons { get; set; }
 
-
+    public List<IFormFile>? VenueImage { get; set; }
 }

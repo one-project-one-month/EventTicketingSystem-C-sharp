@@ -25,7 +25,7 @@ public class VenueEditModel
 
     public List<string> VenueImage { get; set; }
 
-    public static VenueEditModel FromTblVenue(TblVenue venue)
+    public static VenueEditModel FromTblVenue(TblVenue venue, string domainUrl)
     {
         var venueModel = new VenueEditModel
         {
@@ -40,18 +40,29 @@ public class VenueEditModel
             VenueImage = new List<string>()
         };
         
-        if (!string.IsNullOrWhiteSpace(venue.Venueimage))
+        if (!venue.Venueimage.IsNullOrEmpty())
         {
             venueModel.VenueImage = venue.Venueimage
                 .Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
+
+            foreach (var image in venueModel.VenueImage)
+            {
+                if (!image.IsNullOrEmpty())
+                {
+                    var baseUrl = domainUrl!.EndsWith("/") ? domainUrl : domainUrl + "/";
+                    var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
+
+                    venueModel.VenueImage = new List<string> { $"{baseUrl}{imagePath}" };
+                }
+            }
         }
         
-        if (!string.IsNullOrWhiteSpace(venue.Addons))
+        if (!venue.Addons.IsNullOrEmpty())
         {
-            venueModel.Addons = venue.Addons
+            venueModel.Addons = venue.Addons!
                 .Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))

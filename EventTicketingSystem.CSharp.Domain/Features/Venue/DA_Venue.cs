@@ -5,15 +5,18 @@ public class DA_Venue : AuthorizationService
     private readonly ILogger<DA_Venue> _logger;
     private readonly AppDbContext _db;
     private readonly CommonService _commonService;
+    private readonly IConfiguration _configuration;
 
     public DA_Venue(IHttpContextAccessor httpContextAccessor,
                     ILogger<DA_Venue> logger,
                     AppDbContext db,
-                    CommonService commonService) : base(httpContextAccessor)
+                    CommonService commonService,
+                    IConfiguration configuration) : base(httpContextAccessor)
     {
         _logger = logger;
         _db = db;
         _commonService = commonService;
+        _configuration = configuration;
     }
 
     #region Get Venue List
@@ -65,6 +68,7 @@ public class DA_Venue : AuthorizationService
 
         try
         {
+            var adminDomainUrl = _configuration.GetSection("AdminDomainUrl").Value;
             var venue = await _db.TblVenues
                             .FirstOrDefaultAsync(
                                 x => x.Venuecode == venueCode &&
@@ -75,7 +79,8 @@ public class DA_Venue : AuthorizationService
                 return Result<VenueEditResponseModel>.NotFoundError("No venue found.");
             }
 
-            model.Venue = VenueEditModel.FromTblVenue(venue);
+            model.Venue = VenueEditModel.FromTblVenue(venue, adminDomainUrl!);
+
             return Result<VenueEditResponseModel>.Success(model);
         }
         catch (Exception ex)
@@ -88,13 +93,14 @@ public class DA_Venue : AuthorizationService
     #endregion
 
     #region Create Venue
+
     public async Task<Result<VenueCreateResponseModel>> Create(VenueCreateRequestModel requestModel)
     {
         string imageLink = string.Empty;
         string addons = string.Empty;
 
         try
-        {   
+        {
             if (requestModel.VenueImage != null && requestModel.VenueImage.Count > 0)
             {
                 var uploadResults = await EnumDirectory.VenueImage.UploadFilesAsync(requestModel.VenueImage);
@@ -142,14 +148,15 @@ public class DA_Venue : AuthorizationService
 
     public async Task<Result<VenueUpdateResponseModel>> Update(VenueUpdateRequestModel requestModel)
     {
+        string imageLink = string.Empty;
         string addons = string.Empty;
 
         if (requestModel.VenueCode.IsNullOrEmpty())
         {
             return Result<VenueUpdateResponseModel>.UserInputError("Venue code cannot be null or empty.");
         }
-        
-        if (requestModel.Address.IsNullOrEmpty() || requestModel.Description.IsNullOrEmpty() || 
+
+        if (requestModel.Address.IsNullOrEmpty() || requestModel.Description.IsNullOrEmpty() ||
             requestModel.Facilities.IsNullOrEmpty() || requestModel.Addons.IsNullOrEmpty())
         {
             return Result<VenueUpdateResponseModel>.UserInputError("All fields are empty. Please provide at least one field to update.");
@@ -173,10 +180,18 @@ public class DA_Venue : AuthorizationService
                 addons = string.Join(",", requestModel.Addons.Select(a => a.Trim()));
             }
 
+            if (requestModel.VenueImage != null && requestModel.VenueImage.Count > 0)
+            {
+                var uploadResults = await EnumDirectory.VenueImage.UploadFilesAsync(requestModel.VenueImage);
+
+                imageLink = string.Join(",", uploadResults.Select(x => x.FilePath));
+            }
+
             existingVenue.Description = requestModel.Description;
             existingVenue.Address = requestModel.Address!;
             existingVenue.Facilities = requestModel.Facilities;
             existingVenue.Addons = addons;
+            existingVenue.Venueimage = imageLink;
             existingVenue.Modifiedby = CurrentUserId;
             existingVenue.Modifiedat = DateTime.Now;
 
@@ -230,7 +245,6 @@ public class DA_Venue : AuthorizationService
 
     #endregion
 
-
     #region Get Venue List For User
 
     public async Task<Result<VenueListResponseModeForUser>> UserVenueList(int pageNo)
@@ -241,9 +255,9 @@ public class DA_Venue : AuthorizationService
 
             var paginatedResult = await _db.TblVenues
                                     .Join(_db.TblVenuetypes,
-                                    ve => ve.Venuetypecode,
-                                    vt => vt.Venuetypecode,
-                                    (ve, vt) => new {ve, vt})
+                                        ve => ve.Venuetypecode,
+                                        vt => vt.Venuetypecode,
+                                        (ve, vt) => new { ve, vt })
                                     .Where(x => !x.ve.Deleteflag)
                                     .OrderByDescending(x => x.ve.Venueid)
                                     .ToPaginatedList(pagination);
@@ -269,12 +283,14 @@ public class DA_Venue : AuthorizationService
             if (!paginatedResult.ItemList.Any())
                 return Result<VenueListResponseModeForUser>.NotFoundError("No venue found.");
 
+            var userDomainUrl = _configuration.GetSection("UserDomainUrl").Value;
+
             var model = new VenueListResponseModeForUser
             {
                 VenueList = paginatedResult.ItemList
-                    .Select(x => VenueListModelForUser.FromTblVenue(x.ve, x.vt))
+                    .Select(x => VenueListModelForUser.FromTblVenue(x.ve, x.vt, userDomainUrl!))
                     .ToList(),
-                Top3Venues = VenuesResult.Select(x => VenueListModelForUser.FromTblVenue(x.v, x.vt)).ToList(),
+                Top3Venues = VenuesResult.Select(x => VenueListModelForUser.FromTblVenue(x.v, x.vt, userDomainUrl!)).ToList(),
                 PageNo = paginatedResult.Pagination.PageNo,
                 PageSize = paginatedResult.Pagination.PageSize,
                 TotalRowCount = paginatedResult.Pagination.TotalRowCount
@@ -290,6 +306,4 @@ public class DA_Venue : AuthorizationService
     }
 
     #endregion
-
-
 }

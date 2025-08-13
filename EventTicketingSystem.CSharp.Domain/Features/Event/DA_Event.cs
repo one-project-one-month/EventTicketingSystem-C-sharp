@@ -5,15 +5,18 @@ public class DA_Event : AuthorizationService
     private readonly ILogger<DA_Event> _logger;
     private readonly AppDbContext _db;
     private readonly CommonService _commonService;
+    private readonly IConfiguration _configuration;
 
     public DA_Event(IHttpContextAccessor httpContextAccessor,
                     ILogger<DA_Event> logger,
                     AppDbContext db,
-                    CommonService commonService) : base(httpContextAccessor)
+                    CommonService commonService,
+                    IConfiguration configuration) : base(httpContextAccessor)
     {
         _logger = logger;
         _db = db;
         _commonService = commonService;
+        _configuration = configuration;
     }
 
     #region Event List
@@ -118,6 +121,8 @@ public class DA_Event : AuthorizationService
                 return Result<EventEditResponseModel>.NotFoundError("Event not found.");
             }
 
+            var adminDomainUrl = _configuration.GetSection("AdminDomainUrl").Value;
+
             var eventModel = EventEditModel.FromTblEvent(item!.e);
             eventModel.Businessownername = item.Fullname;
             eventModel.Venuename = item.Venuename;
@@ -128,7 +133,7 @@ public class DA_Event : AuthorizationService
             eventModel.Venuetypename = item.Venuetypename;
             eventModel.Eventcategory = item.Categoryname;
 
-            if (!string.IsNullOrWhiteSpace(item.Addons))
+            if (!item.Addons.IsNullOrEmpty())
             {
                 eventModel.Addons = item.Addons
                     .Split([','], StringSplitOptions.RemoveEmptyEntries)
@@ -137,13 +142,24 @@ public class DA_Event : AuthorizationService
                     .ToList();
             }
 
-            if (!string.IsNullOrWhiteSpace(item.Venueimage))
+            if (!item.Venueimage.IsNullOrEmpty())
             {
                 eventModel.VenueImage = item.Venueimage
                     .Split([','], StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrWhiteSpace(x))
                     .ToList();
+
+                foreach (var image in eventModel.VenueImage)
+                {
+                    if (!image.IsNullOrEmpty())
+                    {
+                        var baseUrl = adminDomainUrl!.EndsWith("/") ? adminDomainUrl : adminDomainUrl + "/";
+                        var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
+
+                        eventModel.VenueImage = new List<string> { $"{baseUrl}{imagePath}" };
+                    }
+                }
             }
 
             model.Event = eventModel;

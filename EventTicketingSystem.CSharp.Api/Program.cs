@@ -16,7 +16,16 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors();
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowedOrigins", policy =>
+    {
+        policy.WithOrigins(allowedOrigins!)
+              .WithMethods("GET", "POST")
+              .WithHeaders("Content-Type", "Authorization");
+    });
+});
 
 builder.Services.AddSerilog();
 
@@ -96,26 +105,36 @@ app.UseSwaggerUI(options =>
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 try
 {
-    string rootFolder = builder.Configuration.GetSection(Directory.GetCurrentDirectory()).Value!;
-    string qr = builder.Configuration.GetSection("Qr").Value!;
-    string profile = builder.Configuration.GetSection("Profile").Value!;
-    string venue = builder.Configuration.GetSection("Venue").Value!;
+    string wwwroot = builder.Configuration.GetValue("RootFolder", "wwwroot")!;
+    string rootFolder = Path.Combine(Directory.GetCurrentDirectory(), wwwroot);
 
-    app.UseLogicalFileService(rootFolder, qr);
-    app.UseLogicalFileService(rootFolder, profile);
-    app.UseLogicalFileService(rootFolder, venue);
+    Directory.CreateDirectory(rootFolder);
+
+    var mediaFolders = new Dictionary<string, string>
+    {
+        ["Qr"] = builder.Configuration.GetValue("Qr", "Qrimage")!,
+        ["Profile"] = builder.Configuration.GetValue("Profile", "ProfileImage")!,
+        ["Venue"] = builder.Configuration.GetValue("Venue", "VenueImage")!
+    };
+
+    foreach (var folder in mediaFolders)
+    {
+        string fullPath = Path.Combine(rootFolder, folder.Value);
+        Directory.CreateDirectory(fullPath);
+
+        app.UseLogicalFileService(rootFolder, folder.Value);
+    }
 }
 catch (Exception ex)
 {
     Console.WriteLine(ex.ToString());
 }
 
-app.UseCors(builder =>
-    builder.AllowAnyOrigin()
-           .AllowAnyMethod()
-           .AllowAnyHeader());
+app.UseCors("AllowedOrigins");
 
 app.UseAuthentication();
 
