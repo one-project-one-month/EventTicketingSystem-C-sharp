@@ -35,8 +35,10 @@ public class DA_Home : AuthorizationService
                     select new
                     {
                         e.Eventid,
+                        e.Eventcode,
                         e.Eventname,
-                        Address = v.Address
+                        Address = v.Address,
+                        Venueimage = v.Venueimage,
                     }
                 )
                 .Take(3)
@@ -54,8 +56,10 @@ public class DA_Home : AuthorizationService
                 Events = EventResult.Select(e => new EventsResponseModels
                 {
                     Eventid = e.Eventid,
+                    Eventcode = e.Eventcode,
                     Eventname = e.Eventname,
-                    Address = e.Address
+                    Address = e.Address,
+                    Venueimage = e.Venueimage,
                 }).ToList()
             };
 
@@ -76,10 +80,12 @@ public class DA_Home : AuthorizationService
                         (v, vt) => new
                         {
                             v.Venueid,
+                            v.Venuecode,
                             v.Venuename,
                             v.Capacity,
+                            v.Venueimage,
                             v.Address,
-                            Venuetypename = vt.Venuetypename
+                            Venuetypename = vt.Venuetypename,
                         }
                     )
                     .ToListAsync();
@@ -95,8 +101,10 @@ public class DA_Home : AuthorizationService
                 Venues = VenuesResult.Select(v => new VenuesResponseModels
                 {
                     Venueid = v.Venueid,
+                    Venuecode = v.Venuecode,
                     Venuename = v.Venuename,
                     Capacity = v.Capacity,
+                    Venueimage = v.Venueimage,
                     Address = v.Address,
                     Venuetypename = v.Venuetypename
                 }).ToList()
