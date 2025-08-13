@@ -14,9 +14,11 @@ public class Top3VenuesResponseModels
 public class VenuesResponseModels
 {
     public string Venueid { get; set; } = null!;
+    public string Venuecode { get; set; } = null!;
     public string Venuename { get; set; } = null!;
     public string Venuetypename { get; set; } = null!;
     public int Capacity { get; set; }
+    public string Venueimage { get; set; } = null!;
     public string Address { get; set; } = null!;
 
 }

@@ -237,12 +237,34 @@ public class DA_Venue : AuthorizationService
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 9 };
 
             var paginatedResult = await _db.TblVenues
-                                    .Where(x => !x.Deleteflag)
-                                    .OrderByDescending(x => x.Venueid)
+                                    .Join(_db.TblVenuetypes,
+                                    ve => ve.Venuetypecode,
+                                    vt => vt.Venuetypecode,
+                                    (ve, vt) => new {ve, vt})
+                                    .Where(x => !x.ve.Deleteflag)
+                                    .OrderByDescending(x => x.ve.Venueid)
                                     .ToPaginatedList(pagination);
+
+            var top3VenueCodes = await _db.TblEvents
+                                    .Where(e => e.Deleteflag == false)
+                                    .GroupBy(e => e.Venuecode)
+                                    .OrderByDescending(g => g.Count())
+                                    .Select(g => g.Key)
+                                    .Take(3)
+                                    .ToListAsync();
+
+            var VenuesResult = await _db.TblVenues
+                                    .Where(v => top3VenueCodes.Contains(v.Venuecode) && v.Deleteflag == false)
+                                    .Join(
+                                        _db.TblVenuetypes,
+                                        v => v.Venuetypecode,
+                                        vt => vt.Venuetypecode,
+                                        (v, vt) => new { v, vt }
+                                    )
+                                    .ToListAsync();
 
             if (!paginatedResult.ItemList.Any())
                 return Result<VenueListResponseModeForUser>.NotFoundError("No venue found.");
@@ -250,8 +272,9 @@ public class DA_Venue : AuthorizationService
             var model = new VenueListResponseModeForUser
             {
                 VenueList = paginatedResult.ItemList
-                    .Select(VenueListModelForUser.FromTblVenue)
+                    .Select(x => VenueListModelForUser.FromTblVenue(x.ve, x.vt))
                     .ToList(),
+                Top3Venues = VenuesResult.Select(x => VenueListModelForUser.FromTblVenue(x.v, x.vt)).ToList(),
                 PageNo = paginatedResult.Pagination.PageNo,
                 PageSize = paginatedResult.Pagination.PageSize,
                 TotalRowCount = paginatedResult.Pagination.TotalRowCount
