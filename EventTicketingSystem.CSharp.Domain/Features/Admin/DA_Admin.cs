@@ -27,20 +27,17 @@ public class DA_Admin : AuthorizationService
         try
         {
             var admins = await _db.TblAdmins
-                            .Where(x=>!x.Deleteflag)
-                            .OrderByDescending(x=>x.Adminid)
-                            .ToListAsync();            
+                            .Where(x => !x.Deleteflag)
+                            .OrderByDescending(x => x.Adminid)
+                            .ToListAsync();
 
             if (!admins.Any())
             {
                 return Result<AdminListResponseModel>.Success("No admin user found.");
-            };
+            }
+            ;
 
-            var model = new AdminListResponseModel
-            {
-                AdminList = admins.Select(AdminListModel.FromTblAdmin).ToList(),
-            };
-
+            model.AdminList = admins.Select(AdminListModel.FromTblAdmin).ToList();
             return Result<AdminListResponseModel>.Success(model);
         }
         catch (Exception ex)
