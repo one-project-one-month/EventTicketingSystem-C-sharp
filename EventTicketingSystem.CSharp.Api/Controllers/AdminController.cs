@@ -1,4 +1,4 @@
-﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
+namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Admin User")]
 [Route("api/[controller]")]
@@ -15,10 +15,10 @@ public class AdminController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List/{pageNo}")]
-    public async Task<IActionResult> List(int pageNo = 1)
+    [HttpGet("List")]
+    public async Task<IActionResult> List()
     {
-        var data = await _blAdmin.List(pageNo);
+        var data = await _blAdmin.List();
         return Ok(data);
     }
 

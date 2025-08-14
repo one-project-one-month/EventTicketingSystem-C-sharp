@@ -1,6 +1,6 @@
 ﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.BusinessEmail;
 
-public class BusinessEmailListResponseModel : PaginationModel
+public class BusinessEmailListResponseModel
 {
     public List<BusinessEmailListModel>? BusinessEmailList { get; set; } = new List<BusinessEmailListModel>();
 }

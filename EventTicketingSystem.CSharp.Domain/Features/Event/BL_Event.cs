@@ -9,9 +9,9 @@ public class BL_Event
         _daService = service;
     }
 
-    public async Task<Result<EventListResponseModel>> List(int pageNo)
+    public async Task<Result<EventListResponseModel>> List()
     {
-        return await _daService.List(pageNo);
+        return await _daService.List();
     }
 
     public async Task<Result<EventEditResponseModel>> Edit(string eventCode)

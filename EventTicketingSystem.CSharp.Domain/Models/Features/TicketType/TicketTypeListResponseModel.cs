@@ -1,6 +1,6 @@
 namespace EventTicketingSystem.CSharp.Domain.Models.Features.TicketType;
 
-public class TicketTypeListResponseModel : PaginationModel
+public class TicketTypeListResponseModel
 {
     public List<TicketTypeListModel>? TicketTypeList { get; set; }
 }

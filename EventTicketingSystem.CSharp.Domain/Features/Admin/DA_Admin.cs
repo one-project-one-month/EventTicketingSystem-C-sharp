@@ -1,4 +1,4 @@
-﻿namespace EventTicketingSystem.CSharp.Domain.Features.Admin;
+namespace EventTicketingSystem.CSharp.Domain.Features.Admin;
 
 public class DA_Admin : AuthorizationService
 {
@@ -26,17 +26,21 @@ public class DA_Admin : AuthorizationService
         var model = new AdminListResponseModel();
         try
         {
-            var adminList = await _db.TblAdmins
-                            .Where(x => x.Deleteflag == false)
-                            .OrderByDescending(x => x.Adminid)
-                            .ToListAsync();
+            var admins = await _db.TblAdmins
+                            .Where(x=>!x.Deleteflag)
+                            .OrderByDescending(x=>x.Adminid)
+                            .ToListAsync();            
 
-            if (adminList is null)
+            if (!admins.Any())
             {
                 return Result<AdminListResponseModel>.Success("No admin user found.");
-            }
+            };
 
-            model.AdminList = adminList!.Select(AdminListModel.FromTblAdmin).ToList();
+            var model = new AdminListResponseModel
+            {
+                AdminList = admins.Select(AdminListModel.FromTblAdmin).ToList(),
+            };
+
             return Result<AdminListResponseModel>.Success(model);
         }
         catch (Exception ex)

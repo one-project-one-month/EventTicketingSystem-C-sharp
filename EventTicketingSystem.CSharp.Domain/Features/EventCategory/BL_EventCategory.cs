@@ -9,9 +9,9 @@ public class BL_EventCategory
         _dataAccess = dataAccess;
     }
 
-    public async Task<Result<EventCategoryListResponseModel>> List(int pageNo)
+    public async Task<Result<EventCategoryListResponseModel>> List()
     {
-        return await _dataAccess.List(pageNo);
+        return await _dataAccess.List();
     }
 
     public async Task<Result<EventCategoryEditResponseModel>> Edit(string eventCategoryCode)

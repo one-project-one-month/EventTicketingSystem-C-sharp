@@ -1,6 +1,6 @@
 ﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.VerificationCode;
 
-public class VCResponseModel : PaginationModel
+public class VCResponseModel 
 {
     public List<VCodeModel> VerificationCodes {  get; set; }
 

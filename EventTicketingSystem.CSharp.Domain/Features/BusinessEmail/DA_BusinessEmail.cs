@@ -80,28 +80,23 @@ public class DA_BusinessEmail : AuthorizationService
         }
     }
 
-    public async Task<Result<BusinessEmailListResponseModel>> List(int pageNo)
+    public async Task<Result<BusinessEmailListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
+            var businessEmailList = await _db.TblBusinessemails
+                                        .Where(x=>!x.Deleteflag)
+                                        .OrderByDescending(x=>x.Businessemailid)
+                                        .ToListAsync();
 
-            var paginatedResult = await _db.TblBusinessemails
-                                .Where(x => !x.Deleteflag)
-                                .OrderByDescending(x => x.Businessemailid)
-                                .ToPaginatedList(pagination);
-
-            if (!paginatedResult.ItemList.Any())
+            if (!businessEmailList.Any() || businessEmailList is null)
                 return Result<BusinessEmailListResponseModel>.Success("No Business Emails found.");
 
             var model = new BusinessEmailListResponseModel
             {
-                BusinessEmailList = paginatedResult.ItemList
+                BusinessEmailList = businessEmailList
                     .Select(BusinessEmailListModel.FromTblBusinessEmail)
-                    .ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+                    .ToList()
             };
 
             return Result<BusinessEmailListResponseModel>.Success(model);

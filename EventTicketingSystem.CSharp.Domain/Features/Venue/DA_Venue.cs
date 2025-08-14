@@ -18,28 +18,24 @@ public class DA_Venue : AuthorizationService
 
     #region Get Venue List
 
-    public async Task<Result<VenueListResponseModel>> List(int pageNo)
+    public async Task<Result<VenueListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
-            var paginatedResult = await _db.TblVenues
+            
+            var venueList = await _db.TblVenues
                                     .Where(x => !x.Deleteflag)
                                     .OrderByDescending(x => x.Venueid)
-                                    .ToPaginatedList(pagination);
+                                    .ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!venueList.Any() || venueList is null)
                 return Result<VenueListResponseModel>.NotFoundError("No venue found.");
 
             var model = new VenueListResponseModel
             {
-                VenueList = paginatedResult.ItemList
+                VenueList = venueList
                     .Select(VenueListModel.FromTblVenue)
-                    .ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
+                    .ToList()
             };
 
             return Result<VenueListResponseModel>.Success(model);
@@ -251,9 +247,9 @@ public class DA_Venue : AuthorizationService
 
             var paginatedResult = await _db.TblVenues
                                     .Join(_db.TblVenuetypes,
-                                        ve => ve.Venuetypecode,
-                                        vt => vt.Venuetypecode,
-                                        (ve, vt) => new { ve, vt })
+                                    ve => ve.Venuetypecode,
+                                    vt => vt.Venuetypecode,
+                                    (ve, vt) => new { ve, vt })
                                     .Where(x => !x.ve.Deleteflag)
                                     .OrderByDescending(x => x.ve.Venueid)
                                     .ToPaginatedList(pagination);

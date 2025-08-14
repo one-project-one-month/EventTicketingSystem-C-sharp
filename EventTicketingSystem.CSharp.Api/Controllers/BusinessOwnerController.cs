@@ -17,10 +17,10 @@ public class BusinessOwnerController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List/{pageNo}")]
-    public async Task<IActionResult> List(int pageNo)
+    [HttpGet("List")]
+    public async Task<IActionResult> List()
     {
-        return Ok(await _blBusinessOwner.List(pageNo));
+        return Ok(await _blBusinessOwner.List());
     }
 
     [HttpGet("Edit/{ownerCode}")]

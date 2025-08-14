@@ -18,28 +18,23 @@ public class DA_BusinessOwner : AuthorizationService
 
     #region Get Business Owner List
 
-    public async Task<Result<BusinessOwnerListResponseModel>> List(int pageNo)
+    public async Task<Result<BusinessOwnerListResponseModel>> List()
     {
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
-
-            var paginatedResult = await _db.TblBusinessowners
+            var businessOwnerList = await _db.TblBusinessowners
                                     .Where(x => !x.Deleteflag)
                                     .OrderByDescending(x => x.Businessownerid)
-                                    .ToPaginatedList(pagination);
+                                    .ToListAsync();
 
-            if (!paginatedResult.ItemList.Any())
+            if (!businessOwnerList.Any() || businessOwnerList is null)
                 return Result<BusinessOwnerListResponseModel>.NotFoundError("No Owner Found.");
 
             var model = new BusinessOwnerListResponseModel
             {
-                BusinessOwners = paginatedResult.ItemList
+                BusinessOwners = businessOwnerList
                     .Select(BusinessOwnerListModel.FromTblOwner)
                     .ToList(),
-                PageNo = paginatedResult.Pagination.PageNo,
-                PageSize = paginatedResult.Pagination.PageSize,
-                TotalRowCount = paginatedResult.Pagination.TotalRowCount
             };
 
             return Result<BusinessOwnerListResponseModel>.Success(model);

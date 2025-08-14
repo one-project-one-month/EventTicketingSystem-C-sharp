@@ -14,11 +14,11 @@ public class VerificationCodeController : ControllerBase
         _exportService = exportService;
     }
 
-    [HttpGet("List/{pageNo}")]
+    [HttpGet("List")]
     [Authorize]
-    public async Task<IActionResult> List(int pageNo)
+    public async Task<IActionResult> List()
     {
-        return Ok(await _vcService.List(pageNo));
+        return Ok(await _vcService.List());
     }
 
     [HttpGet("Get/{vcId}")]

@@ -17,11 +17,11 @@ namespace EventTicketingSystem.CSharp.Api.Controllers
             _exportService = exportService;
         }
 
-        [HttpGet("List/{pageNo}")]
+        [HttpGet("List")]
         [AllowAnonymous]
-        public async Task<IActionResult> List(int pageNo)
+        public async Task<IActionResult> List()
         {
-            return Ok(await _blVenueType.List(pageNo));
+            return Ok(await _blVenueType.List());
         }
 
         [HttpGet("Edit/{venueTypeCode}")]

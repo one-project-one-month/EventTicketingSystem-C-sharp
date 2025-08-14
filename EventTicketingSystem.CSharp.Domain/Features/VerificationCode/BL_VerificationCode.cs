@@ -9,9 +9,9 @@ public class BL_VerificationCode
         _daService = dataAccess;
     }
 
-    public async Task<Result<VCResponseModel>> List(int pageNo)
+    public async Task<Result<VCResponseModel>> List()
     {
-        return await _daService.List(pageNo);
+        return await _daService.List();
     }
 
     public async Task<Result<VCResponseModel>> GetById(string vcId)

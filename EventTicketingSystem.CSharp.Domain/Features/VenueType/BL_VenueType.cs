@@ -8,9 +8,9 @@ public class BL_VenueType
         _dataAccess = dataAccess; 
     }
 
-    public async Task<Result<VenueTypeListResponseModel>> List(int pageNo)
+    public async Task<Result<VenueTypeListResponseModel>> List()
     {
-        return await _dataAccess.List(pageNo);
+        return await _dataAccess.List();
     }
 
     public async Task<Result<VenueTypeEditResponseModel>> Edit(string venueTypeCode)
