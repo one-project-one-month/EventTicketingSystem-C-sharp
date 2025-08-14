@@ -23,7 +23,7 @@ public class VenueListModelForUser
 
     public List<string> Venueimage { get; set; }
 
-    public static VenueListModelForUser FromTblVenue(TblVenue venue, TblVenuetype venuetype, string domainUrl)
+    public static VenueListModelForUser FromTblVenue(TblVenue venue, TblVenuetype venuetype)
     {
         var venueModel =  new VenueListModelForUser
         {
@@ -43,17 +43,6 @@ public class VenueListModelForUser
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
-
-            foreach (var image in venueModel.Venueimage)
-            {
-                if (!image.IsNullOrEmpty())
-                {
-                    var baseUrl = domainUrl!.EndsWith("/") ? domainUrl : domainUrl + "/";
-                    var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
-
-                    venueModel.Venueimage = new List<string> { $"{baseUrl}{imagePath}" };
-                }
-            }
         }
 
         return venueModel;

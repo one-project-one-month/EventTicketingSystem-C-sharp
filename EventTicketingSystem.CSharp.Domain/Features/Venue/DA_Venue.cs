@@ -65,8 +65,6 @@ public class DA_Venue : AuthorizationService
 
         try
         {
-            var adminDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
-
             var venue = await _db.TblVenues
                             .FirstOrDefaultAsync(
                                 x => x.Venuecode == venueCode &&
@@ -77,7 +75,7 @@ public class DA_Venue : AuthorizationService
                 return Result<VenueEditResponseModel>.NotFoundError("No venue found.");
             }
 
-            model.Venue = VenueEditModel.FromTblVenue(venue, adminDomainUrl!);
+            model.Venue = VenueEditModel.FromTblVenue(venue);
 
             return Result<VenueEditResponseModel>.Success(model);
         }
@@ -279,16 +277,16 @@ public class DA_Venue : AuthorizationService
                                     .ToListAsync();
 
             if (!paginatedResult.ItemList.Any())
+            {
                 return Result<VenueListResponseModeForUser>.NotFoundError("No venue found.");
-
-            var userDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
+            }
 
             var model = new VenueListResponseModeForUser
             {
                 VenueList = paginatedResult.ItemList
-                    .Select(x => VenueListModelForUser.FromTblVenue(x.ve, x.vt, userDomainUrl!))
+                    .Select(x => VenueListModelForUser.FromTblVenue(x.ve, x.vt))
                     .ToList(),
-                Top3Venues = VenuesResult.Select(x => VenueListModelForUser.FromTblVenue(x.v, x.vt, userDomainUrl!)).ToList(),
+                Top3Venues = VenuesResult.Select(x => VenueListModelForUser.FromTblVenue(x.v, x.vt)).ToList(),
                 PageNo = paginatedResult.Pagination.PageNo,
                 PageSize = paginatedResult.Pagination.PageSize,
                 TotalRowCount = paginatedResult.Pagination.TotalRowCount

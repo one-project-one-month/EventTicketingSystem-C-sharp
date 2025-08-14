@@ -19,27 +19,16 @@ public class AdminEditModel
 
     public string? ProfileImage { get; set; }
 
-    public static AdminEditModel FromTblAdmin(TblAdmin admin, string domainUrl)
+    public static AdminEditModel FromTblAdmin(TblAdmin admin)
     {
-        var adminModel = new AdminEditModel
+        return new AdminEditModel
         {
             AdminCode = admin.Admincode,
             Username = admin.Username,
             Email = admin.Email,
             PhoneNo = admin.Phone,
             FullName = admin.Fullname,
-            ProfileImage = string.Empty
+            ProfileImage = admin.Profileimage
         };
-
-
-        if (!admin.Profileimage.IsNullOrEmpty())
-        {
-            var baseUrl = domainUrl!.EndsWith("/") ? domainUrl : domainUrl + "/";
-            var imagePath = admin.Profileimage!.StartsWith("/") ? admin.Profileimage.Substring(1) : admin.Profileimage;
-
-            adminModel.ProfileImage = $"{baseUrl}{imagePath}";
-        }
-
-        return adminModel;
     }
 }

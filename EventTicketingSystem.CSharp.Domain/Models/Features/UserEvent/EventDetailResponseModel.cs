@@ -26,7 +26,7 @@ public class EventDetailResponseModel
 
     public List<TicketTypeDetail> TicketTypes { get; set; }
 
-    public static EventDetailResponseModel FromTbl(TblEvent tblEvent, TblVenue tblVenue, string userDomainUrl)
+    public static EventDetailResponseModel FromTbl(TblEvent tblEvent, TblVenue tblVenue)
     {
         var eventModel = new EventDetailResponseModel
         {
@@ -50,17 +50,6 @@ public class EventDetailResponseModel
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
-
-            foreach (var image in eventModel.Venueimage)
-            {
-                if (!image.IsNullOrEmpty())
-                {
-                    var baseUrl = userDomainUrl!.EndsWith("/") ? userDomainUrl : userDomainUrl + "/";
-                    var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
-
-                    eventModel.Venueimage = new List<string> { $"{baseUrl}{imagePath}" };
-                }
-            }
         }
 
         return eventModel;

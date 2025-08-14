@@ -16,19 +16,20 @@ public class DA_User_Event
     }
 
     #region UserEvents
+
     public async Task<Result<UserEventListResponseModel>> GetUserEvents(int pageNo)
     {
         var response = new Result<UserEventListResponseModel>();
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 9};
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 9 };
 
             var top3Events = await _db.TblEvents
                 .Join(_db.TblVenues,
                 ev => ev.Venuecode,
-                ve =>  ve.Venuecode,
-                (ev, ve) => new {ev, ve})
-                .OrderByDescending(x=>x.ev.Soldoutcount)
+                ve => ve.Venuecode,
+                (ev, ve) => new { ev, ve })
+                .OrderByDescending(x => x.ev.Soldoutcount)
                 .Take(3)
                 .ToListAsync();
 
@@ -41,19 +42,17 @@ public class DA_User_Event
 
             var paginationList = await eventList.ToPaginatedList(pagination);
 
-            var userDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
-
             var model = new UserEventListResponseModel()
             {
                 Top3Events = top3Events.Select(x =>
                 {
-                    var topEvents = UserEventResponseModel.FromTblEvent(x.ev, x.ve, userDomainUrl!);
+                    var topEvents = UserEventResponseModel.FromTblEvent(x.ev, x.ve);
                     return topEvents;
                 }).ToList(),
 
                 EventList = paginationList.ItemList.Select(x =>
                 {
-                    var events = UserEventResponseModel.FromTblEvent(x.ev, x.ve, userDomainUrl!);
+                    var events = UserEventResponseModel.FromTblEvent(x.ev, x.ve);
                     return events;
                 }).ToList(),
 
@@ -63,7 +62,7 @@ public class DA_User_Event
             };
 
             response = Result<UserEventListResponseModel>.Success(model);
-            return response; 
+            return response;
         }
         catch (Exception ex)
         {
@@ -72,9 +71,11 @@ public class DA_User_Event
             return response;
         }
     }
+
     #endregion
 
     #region EventDetail
+
     public async Task<Result<EventDetailResponseModel>> GetEventDetails(string eventCode)
     {
         var response = new Result<EventDetailResponseModel>();
@@ -102,10 +103,10 @@ public class DA_User_Event
                 (tev, tp) => new { tev, tp })
                 .ToListAsync();
 
-            var userDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
-            model = EventDetailResponseModel.FromTbl(item.ev, item.ve, userDomainUrl!);
-            
-            model.TicketTypes = ticketTypes.Select(x =>  new TicketTypeDetail{
+            model = EventDetailResponseModel.FromTbl(item.ev, item.ve);
+
+            model.TicketTypes = ticketTypes.Select(x => new TicketTypeDetail
+            {
                 Tickettypecode = x.tev.tt.Tickettypecode,
                 Tickettypename = x.tev.tt.Tickettypename,
                 Ticketprice = x.tp.Ticketprice,
@@ -121,5 +122,6 @@ public class DA_User_Event
             return response;
         }
     }
+
     #endregion
 }

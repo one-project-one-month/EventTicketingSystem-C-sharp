@@ -21,35 +21,22 @@ public class DA_Admin : AuthorizationService
 
     #region Get Admin List
 
-    public async Task<Result<AdminListResponseModel>> List(int pageNo)
+    public async Task<Result<AdminListResponseModel>> List()
     {
+        var model = new AdminListResponseModel();
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 10 };
+            var adminList = await _db.TblAdmins
+                            .Where(x => x.Deleteflag == false)
+                            .OrderByDescending(x => x.Adminid)
+                            .ToListAsync();
 
-            var paginatedResult = await _db.TblAdmins
-                                .Where(x => x.Deleteflag == false)
-                                .OrderByDescending(x => x.Adminid)
-                                .ToPaginatedList(pagination);
-
-            if (!paginatedResult.ItemList.Any())
+            if (adminList is null)
             {
                 return Result<AdminListResponseModel>.Success("No admin user found.");
             }
 
-            var dataList = new PaginatedListModel<AdminListModel>(
-                paginatedResult.ItemList.Select(AdminListModel.FromTblAdmin).ToList(),
-                paginatedResult.Pagination
-            );
-
-            var model = new AdminListResponseModel
-            {
-                AdminList = dataList.ItemList,
-                PageNo = dataList.Pagination.PageNo,
-                PageSize = dataList.Pagination.PageSize,
-                TotalRowCount = dataList.Pagination.TotalRowCount
-            };
-
+            model.AdminList = adminList!.Select(AdminListModel.FromTblAdmin).ToList();
             return Result<AdminListResponseModel>.Success(model);
         }
         catch (Exception ex)
@@ -84,9 +71,7 @@ public class DA_Admin : AuthorizationService
                 return Result<AdminEditResponseModel>.NotFoundError("Admin Not Found.");
             }
 
-            var adminDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
-
-            model.Admin = AdminEditModel.FromTblAdmin(admin, adminDomainUrl);
+            model.Admin = AdminEditModel.FromTblAdmin(admin);
             return Result<AdminEditResponseModel>.Success(model);
         }
         catch (Exception ex)

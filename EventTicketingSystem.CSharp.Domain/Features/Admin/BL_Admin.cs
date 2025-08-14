@@ -6,9 +6,9 @@ public class BL_Admin
 
     public BL_Admin(DA_Admin dataAccess) => _dataAccess = dataAccess;
 
-    public async Task<Result<AdminListResponseModel>> List(int pageNo)
+    public async Task<Result<AdminListResponseModel>> List()
     {
-        var data = await _dataAccess.List(pageNo);
+        var data = await _dataAccess.List();
         return data;
     }
 

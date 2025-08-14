@@ -19,7 +19,7 @@ public class UserEventResponseModel
 
     public List<string>? Venueimage { get; set; }
 
-    public static UserEventResponseModel FromTblEvent(TblEvent tblEvent, TblVenue tblVenue, string userDomainUrl)
+    public static UserEventResponseModel FromTblEvent(TblEvent tblEvent, TblVenue tblVenue)
     {
         var eventModel = new UserEventResponseModel
         {
@@ -36,17 +36,6 @@ public class UserEventResponseModel
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .ToList();
-
-            foreach (var image in eventModel.Venueimage)
-            {
-                if (!image.IsNullOrEmpty())
-                {
-                    var baseUrl = userDomainUrl!.EndsWith("/") ? userDomainUrl : userDomainUrl + "/";
-                    var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
-
-                    eventModel.Venueimage = new List<string> { $"{baseUrl}{imagePath}" };
-                }
-            }
         }
 
         return eventModel;

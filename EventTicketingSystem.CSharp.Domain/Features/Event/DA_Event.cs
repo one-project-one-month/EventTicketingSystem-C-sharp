@@ -118,8 +118,6 @@ public class DA_Event : AuthorizationService
                 return Result<EventEditResponseModel>.NotFoundError("Event not found.");
             }
 
-            var adminDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
-
             var eventModel = EventEditModel.FromTblEvent(item!.e);
             eventModel.Businessownername = item.Fullname;
             eventModel.Venuename = item.Venuename;
@@ -146,17 +144,6 @@ public class DA_Event : AuthorizationService
                     .Select(x => x.Trim())
                     .Where(x => !string.IsNullOrWhiteSpace(x))
                     .ToList();
-
-                foreach (var image in eventModel.VenueImage)
-                {
-                    if (!image.IsNullOrEmpty())
-                    {
-                        var baseUrl = adminDomainUrl!.EndsWith("/") ? adminDomainUrl : adminDomainUrl + "/";
-                        var imagePath = image.StartsWith("/") ? image.Substring(1) : image;
-
-                        eventModel.VenueImage = new List<string> { $"{baseUrl}{imagePath}" };
-                    }
-                }
             }
 
             model.Event = eventModel;

@@ -40,8 +40,6 @@ public class DA_Home
                 return Result<HomeResponseModel>.NotFoundError("No events found.");
             }
 
-            var domainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
-            
             var top3Events = new TopThreeUserEventResponseModel
             {
                 Events = EventResult.Select(e => new HomeUserEventResponseModel
@@ -50,7 +48,7 @@ public class DA_Home
                     Eventcode = e.Eventcode,
                     Eventname = e.Eventname,
                     Address = e.Address,
-                    Venueimage = ProcessVenueImages(e.Venueimage, domainUrl!)!,
+                    Venueimage = ProcessVenueImages(e.Venueimage)!,
                 }).ToList()
             };
 
@@ -95,7 +93,7 @@ public class DA_Home
                     Venuecode = v.Venuecode,
                     Venuename = v.Venuename,
                     Capacity = v.Capacity,
-                    Venueimage = ProcessVenueImages(v.Venueimage, domainUrl!)!,
+                    Venueimage = ProcessVenueImages(v.Venueimage!)!,
                     Address = v.Address,
                     Venuetypename = v.Venuetypename
                 }).ToList()
@@ -154,24 +152,12 @@ public class DA_Home
         }
     }
 
-    private List<string>? ProcessVenueImages(string? venueImages, string domainUrl)
+    private List<string>? ProcessVenueImages(string? venueImages)
     {
-        if (venueImages.IsNullOrEmpty())
-        {
-            return null!;
-        }
-
-        var baseUrl = domainUrl.TrimEnd('/') + "/";
-
         return venueImages!
             .Split([','], StringSplitOptions.RemoveEmptyEntries)
-            .Select(x => x.Trim())
-            .Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(image =>
-            {
-                var normalizedPath = image.TrimStart('/', '\\');
-                return $"{baseUrl}{normalizedPath}";
-            })
-            .ToList();
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
     }
 }
