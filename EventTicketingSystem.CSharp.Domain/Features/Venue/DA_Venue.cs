@@ -68,7 +68,8 @@ public class DA_Venue : AuthorizationService
 
         try
         {
-            var adminDomainUrl = _configuration.GetSection("AdminDomainUrl").Value;
+            var adminDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
+
             var venue = await _db.TblVenues
                             .FirstOrDefaultAsync(
                                 x => x.Venuecode == venueCode &&
@@ -283,7 +284,7 @@ public class DA_Venue : AuthorizationService
             if (!paginatedResult.ItemList.Any())
                 return Result<VenueListResponseModeForUser>.NotFoundError("No venue found.");
 
-            var userDomainUrl = _configuration.GetSection("UserDomainUrl").Value;
+            var userDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
 
             var model = new VenueListResponseModeForUser
             {

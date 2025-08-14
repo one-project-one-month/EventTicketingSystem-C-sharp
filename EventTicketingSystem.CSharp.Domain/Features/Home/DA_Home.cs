@@ -43,7 +43,8 @@ public class DA_Home
                 return Result<HomeResponseModel>.NotFoundError("No events found.");
             }
 
-            var domainUrl = _configuration.GetSection("UserDomainUrl").Value;
+            var domainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
+            
             var top3Events = new TopThreeUserEventResponseModel
             {
                 Events = EventResult.Select(e => new HomeUserEventResponseModel

@@ -121,7 +121,7 @@ public class DA_Event : AuthorizationService
                 return Result<EventEditResponseModel>.NotFoundError("Event not found.");
             }
 
-            var adminDomainUrl = _configuration.GetSection("AdminDomainUrl").Value;
+            var adminDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
 
             var eventModel = EventEditModel.FromTblEvent(item!.e);
             eventModel.Businessownername = item.Fullname;

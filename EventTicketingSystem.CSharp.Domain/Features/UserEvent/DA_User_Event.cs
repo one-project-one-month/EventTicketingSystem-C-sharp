@@ -41,7 +41,7 @@ public class DA_User_Event
 
             var paginationList = await eventList.ToPaginatedList(pagination);
 
-            var userDomainUrl = _configuration.GetSection("UserDomainUrl").Value;
+            var userDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
 
             var model = new UserEventListResponseModel()
             {
@@ -102,7 +102,7 @@ public class DA_User_Event
                 (tev, tp) => new { tev, tp })
                 .ToListAsync();
 
-            var userDomainUrl = _configuration.GetSection("UserDomainUrl").Value;
+            var userDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
             model = EventDetailResponseModel.FromTbl(item.ev, item.ve, userDomainUrl!);
             
             model.TicketTypes = ticketTypes.Select(x =>  new TicketTypeDetail{
