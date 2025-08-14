@@ -5,18 +5,15 @@ public class DA_Venue : AuthorizationService
     private readonly ILogger<DA_Venue> _logger;
     private readonly AppDbContext _db;
     private readonly CommonService _commonService;
-    private readonly IConfiguration _configuration;
 
     public DA_Venue(IHttpContextAccessor httpContextAccessor,
                     ILogger<DA_Venue> logger,
                     AppDbContext db,
-                    CommonService commonService,
-                    IConfiguration configuration) : base(httpContextAccessor)
+                    CommonService commonService) : base(httpContextAccessor)
     {
         _logger = logger;
         _db = db;
         _commonService = commonService;
-        _configuration = configuration;
     }
 
     #region Get Venue List

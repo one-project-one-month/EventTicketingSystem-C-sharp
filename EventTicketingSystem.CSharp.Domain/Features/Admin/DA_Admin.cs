@@ -84,7 +84,9 @@ public class DA_Admin : AuthorizationService
                 return Result<AdminEditResponseModel>.NotFoundError("Admin Not Found.");
             }
 
-            model.Admin = AdminEditModel.FromTblAdmin(admin);
+            var adminDomainUrl = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
+
+            model.Admin = AdminEditModel.FromTblAdmin(admin, adminDomainUrl);
             return Result<AdminEditResponseModel>.Success(model);
         }
         catch (Exception ex)

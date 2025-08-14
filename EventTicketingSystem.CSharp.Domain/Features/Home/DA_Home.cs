@@ -4,15 +4,12 @@ public class DA_Home
 {
     private readonly AppDbContext _db;
     private readonly ILogger<DA_Admin> _logger;
-    private readonly IConfiguration _configuration;
 
     public DA_Home(ILogger<DA_Admin> logger,
-                    AppDbContext db,
-                    IConfiguration configuration)
+                    AppDbContext db)
     {
         _logger = logger;
         _db = db;
-        _configuration = configuration;
     }
 
     public async Task<Result<HomeResponseModel>> Home()
@@ -159,14 +156,14 @@ public class DA_Home
 
     private List<string>? ProcessVenueImages(string? venueImages, string domainUrl)
     {
-        if (string.IsNullOrWhiteSpace(venueImages))
+        if (venueImages.IsNullOrEmpty())
         {
             return null!;
         }
 
         var baseUrl = domainUrl.TrimEnd('/') + "/";
 
-        return venueImages
+        return venueImages!
             .Split([','], StringSplitOptions.RemoveEmptyEntries)
             .Select(x => x.Trim())
             .Where(x => !string.IsNullOrWhiteSpace(x))

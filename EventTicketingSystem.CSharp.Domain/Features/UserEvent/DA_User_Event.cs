@@ -5,14 +5,14 @@ public class DA_User_Event
     public readonly ILogger<DA_User_Event> _logger;
     public readonly CommonService _commonService;
     public readonly AppDbContext _db;
-    private readonly IConfiguration _configuration;
 
-    public DA_User_Event(ILogger<DA_User_Event> logger, CommonService commonService, AppDbContext db, IConfiguration configuration)
+    public DA_User_Event(ILogger<DA_User_Event> logger,
+                         CommonService commonService,
+                         AppDbContext db)
     {
         _logger = logger;
         _commonService = commonService;
         _db = db;
-        _configuration = configuration;
     }
 
     #region UserEvents

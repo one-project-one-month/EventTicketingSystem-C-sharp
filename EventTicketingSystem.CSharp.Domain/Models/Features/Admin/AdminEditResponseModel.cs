@@ -15,20 +15,31 @@ public class AdminEditModel
 
     public string? Email { get; set; }
 
-    public string? PhoneNo { get; set; } 
-    
+    public string? PhoneNo { get; set; }
+
     public string? ProfileImage { get; set; }
 
-    public static AdminEditModel FromTblAdmin(TblAdmin admin)
+    public static AdminEditModel FromTblAdmin(TblAdmin admin, string domainUrl)
     {
-        return new AdminEditModel
+        var adminModel = new AdminEditModel
         {
             AdminCode = admin.Admincode,
             Username = admin.Username,
             Email = admin.Email,
             PhoneNo = admin.Phone,
             FullName = admin.Fullname,
-            ProfileImage = admin.Profileimage
+            ProfileImage = string.Empty
         };
+
+
+        if (!admin.Profileimage.IsNullOrEmpty())
+        {
+            var baseUrl = domainUrl!.EndsWith("/") ? domainUrl : domainUrl + "/";
+            var imagePath = admin.Profileimage!.StartsWith("/") ? admin.Profileimage.Substring(1) : admin.Profileimage;
+
+            adminModel.ProfileImage = $"{baseUrl}{imagePath}";
+        }
+
+        return adminModel;
     }
 }

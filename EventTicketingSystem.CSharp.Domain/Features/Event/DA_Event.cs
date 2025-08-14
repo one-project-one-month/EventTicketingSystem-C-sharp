@@ -5,18 +5,15 @@ public class DA_Event : AuthorizationService
     private readonly ILogger<DA_Event> _logger;
     private readonly AppDbContext _db;
     private readonly CommonService _commonService;
-    private readonly IConfiguration _configuration;
 
     public DA_Event(IHttpContextAccessor httpContextAccessor,
                     ILogger<DA_Event> logger,
                     AppDbContext db,
-                    CommonService commonService,
-                    IConfiguration configuration) : base(httpContextAccessor)
+                    CommonService commonService) : base(httpContextAccessor)
     {
         _logger = logger;
         _db = db;
         _commonService = commonService;
-        _configuration = configuration;
     }
 
     #region Event List
