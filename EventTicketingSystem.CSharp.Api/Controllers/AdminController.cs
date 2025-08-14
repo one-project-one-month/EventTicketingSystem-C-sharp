@@ -1,4 +1,4 @@
-﻿namespace EventTicketingSystem.CSharp.Api.Controllers;
+namespace EventTicketingSystem.CSharp.Api.Controllers;
 
 [Tags("Admin User")]
 [Route("api/[controller]")]

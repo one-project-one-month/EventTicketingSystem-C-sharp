@@ -40,6 +40,18 @@ public abstract class AuthorizationService
         }
     }
 
+    public string GetRequestUrl()
+    {
+        var context = _contextAccessor.HttpContext;
+        if (context?.Request == null)
+        {
+            return string.Empty;
+        }
+
+        var request = context.Request;
+        return $"{request.Scheme}://{request.Host}";
+    }
+
     protected string CurrentUserId => GetUser()?.UserId ?? string.Empty;
 }
 

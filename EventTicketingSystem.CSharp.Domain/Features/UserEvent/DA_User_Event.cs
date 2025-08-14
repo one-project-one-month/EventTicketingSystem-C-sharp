@@ -4,34 +4,37 @@ public class DA_User_Event
 {
     public readonly ILogger<DA_User_Event> _logger;
     public readonly CommonService _commonService;
-    public readonly AppDbContext _appDbContext;
+    public readonly AppDbContext _db;
 
-    public DA_User_Event(ILogger<DA_User_Event> logger, CommonService commonService, AppDbContext appDbContext)
+    public DA_User_Event(ILogger<DA_User_Event> logger,
+                         CommonService commonService,
+                         AppDbContext db)
     {
         _logger = logger;
         _commonService = commonService;
-        _appDbContext = appDbContext;
+        _db = db;
     }
 
     #region UserEvents
+
     public async Task<Result<UserEventListResponseModel>> GetUserEvents(int pageNo)
     {
         var response = new Result<UserEventListResponseModel>();
         try
         {
-            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 9};
+            var pagination = new PaginationModel { PageNo = pageNo, PageSize = 9 };
 
-            var top3Events = await _appDbContext.TblEvents
-                .Join(_appDbContext.TblVenues,
+            var top3Events = await _db.TblEvents
+                .Join(_db.TblVenues,
                 ev => ev.Venuecode,
-                ve =>  ve.Venuecode,
-                (ev, ve) => new {ev, ve})
-                .OrderByDescending(x=>x.ev.Soldoutcount)
+                ve => ve.Venuecode,
+                (ev, ve) => new { ev, ve })
+                .OrderByDescending(x => x.ev.Soldoutcount)
                 .Take(3)
                 .ToListAsync();
 
-            var eventList = _appDbContext.TblEvents
-                .Join(_appDbContext.TblVenues,
+            var eventList = _db.TblEvents
+                .Join(_db.TblVenues,
                 ev => ev.Venuecode,
                 ve => ve.Venuecode,
                 (ev, ve) => new { ev, ve })
@@ -43,17 +46,13 @@ public class DA_User_Event
             {
                 Top3Events = top3Events.Select(x =>
                 {
-                    var topEvents = UserEventResponseModel.FromTblEvent(x.ev);
-                    topEvents.Venueimage = x.ve.Venueimage;
-                    topEvents.Address = x.ve.Address;
+                    var topEvents = UserEventResponseModel.FromTblEvent(x.ev, x.ve);
                     return topEvents;
                 }).ToList(),
 
                 EventList = paginationList.ItemList.Select(x =>
                 {
-                    var events = UserEventResponseModel.FromTblEvent(x.ev);
-                    events.Venueimage = x.ve.Venueimage;
-                    events.Address = x.ve.Address;
+                    var events = UserEventResponseModel.FromTblEvent(x.ev, x.ve);
                     return events;
                 }).ToList(),
 
@@ -63,7 +62,7 @@ public class DA_User_Event
             };
 
             response = Result<UserEventListResponseModel>.Success(model);
-            return response; 
+            return response;
         }
         catch (Exception ex)
         {
@@ -72,16 +71,19 @@ public class DA_User_Event
             return response;
         }
     }
+
     #endregion
 
     #region EventDetail
+
     public async Task<Result<EventDetailResponseModel>> GetEventDetails(string eventCode)
     {
         var response = new Result<EventDetailResponseModel>();
+        var model = new EventDetailResponseModel();
         try
         {
-            var item = await _appDbContext.TblEvents
-                .Join(_appDbContext.TblVenues,
+            var item = await _db.TblEvents
+                .Join(_db.TblVenues,
                 ev => ev.Venuecode,
                 ve => ve.Venuecode,
                 (ev, ve) => new { ev, ve })
@@ -89,22 +91,22 @@ public class DA_User_Event
 
             if (item is null) return Result<EventDetailResponseModel>.NotFoundError("Event is not found!");
 
-            var ticketTypes = await _appDbContext.TblTickettypes
+            var ticketTypes = await _db.TblTickettypes
                 .Where(x => x.Eventcode == eventCode)
-                .Join(_appDbContext.TblEvents,
+                .Join(_db.TblEvents,
                 tt => tt.Eventcode,
                 ev => ev.Eventcode,
                 (tt, ev) => new { tt, ev })
-                .Join(_appDbContext.TblTicketprices,
+                .Join(_db.TblTicketprices,
                 tev => tev.tt.Tickettypecode,
                 tp => tp.Tickettypecode,
                 (tev, tp) => new { tev, tp })
                 .ToListAsync();
 
-            var model = new EventDetailResponseModel();
             model = EventDetailResponseModel.FromTbl(item.ev, item.ve);
-            
-            model.TicketTypes = ticketTypes.Select(x =>  new TicketTypeDetail{
+
+            model.TicketTypes = ticketTypes.Select(x => new TicketTypeDetail
+            {
                 Tickettypecode = x.tev.tt.Tickettypecode,
                 Tickettypename = x.tev.tt.Tickettypename,
                 Ticketprice = x.tp.Ticketprice,
@@ -120,5 +122,6 @@ public class DA_User_Event
             return response;
         }
     }
+
     #endregion
 }

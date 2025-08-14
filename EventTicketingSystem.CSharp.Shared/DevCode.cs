@@ -217,17 +217,20 @@ public static partial class DevCode
 
     #region File Upload
 
-    public static async Task<List<FileUploadData>> UploadFilesAsync(this EnumDirectory directory, IEnumerable<IFormFile> files)
+    public static async Task<List<FileUploadData>> UploadFilesAsync(
+        this EnumDirectory directory,
+        IEnumerable<IFormFile> files)
     {
         if (files == null || !files.Any())
         {
             throw new Exception("Error: No files were uploaded.");
         }
 
-        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), directory.ToString());
-        if (!Directory.Exists(uploadPath))
+        var wwwrootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
+        var directoryPath = Path.Combine(wwwrootPath, directory.ToString());
+        if (!Directory.Exists(directoryPath))
         {
-            Directory.CreateDirectory(uploadPath);
+            Directory.CreateDirectory(directoryPath);
         }
 
         var uploadedFiles = new List<FileUploadData>();
@@ -245,16 +248,16 @@ public static partial class DevCode
             }
 
             var fileName = GenerateUlid() + ".jpg";
-            var filePath = Path.Combine(uploadPath, fileName);
-            var savePath = Path.Combine(directory.ToString(), fileName);
+            var filePath = Path.Combine(directoryPath, fileName).Replace("\\", "/");
+            var relativePath = Path.Combine(directory.ToString(), fileName).Replace("\\", "/");
             try
             {
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await file.CopyToAsync(fileStream);
+                using var fileStream2 = new FileStream(filePath, FileMode.Create);
+                await file.CopyToAsync(fileStream2);
 
                 uploadedFiles.Add(new FileUploadData
                 {
-                    FilePath = savePath,
+                    FilePath = relativePath,
                     FileName = fileName,
                 });
             }
@@ -268,7 +271,7 @@ public static partial class DevCode
                     }
                     catch
                     {
-                        // throw;
+                        throw;
                     }
                 }
                 throw new Exception($"Error uploading files: {ex.Message}");
@@ -404,22 +407,6 @@ public static partial class DevCode
         }
 
         return decrypted;
-    }
-
-    #endregion
-
-    #region Get Request Url
-
-    public static string GetRequestUrl(HttpContext context)
-    {
-        if (context == null || context.Request == null)
-        {
-            return string.Empty;
-        }
-
-        var request = context.Request;
-        var url = $"{request.Scheme}://{request.Host}";
-        return url;
     }
 
     #endregion

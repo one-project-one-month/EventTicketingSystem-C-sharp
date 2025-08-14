@@ -2,6 +2,7 @@
 
 public enum EnumDirectory
 {
+    wwwroot,
     QrImage,
     ProfileImage,
     VenueImage,

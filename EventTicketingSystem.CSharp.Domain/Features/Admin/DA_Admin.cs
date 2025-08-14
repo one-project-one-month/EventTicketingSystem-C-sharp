@@ -1,4 +1,4 @@
-﻿namespace EventTicketingSystem.CSharp.Domain.Features.Admin;
+namespace EventTicketingSystem.CSharp.Domain.Features.Admin;
 
 public class DA_Admin : AuthorizationService
 {
@@ -23,6 +23,7 @@ public class DA_Admin : AuthorizationService
 
     public async Task<Result<AdminListResponseModel>> List()
     {
+        var model = new AdminListResponseModel();
         try
         {
             var admins = await _db.TblAdmins

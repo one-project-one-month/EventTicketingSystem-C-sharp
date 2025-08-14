@@ -68,3 +68,7 @@ global using ZXing;
 global using ZXing.Common;
 global using ZXing.Rendering;
 global using EventTicketingSystem.CSharp.Domain.Models.Features.Transaction;
+global using EventTicketingSystem.CSharp.Domain.Features.Home;
+global using EventTicketingSystem.CSharp.Domain.Features.Transaction;
+global using EventTicketingSystem.CSharp.Domain.Models.Features.Home;
+global using EventTicketingSystem.CSharp.Domain.Features.UserEvent;

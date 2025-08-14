@@ -40,7 +40,7 @@ public class VenueEditModel
             VenueImage = new List<string>()
         };
         
-        if (!string.IsNullOrWhiteSpace(venue.Venueimage))
+        if (!venue.Venueimage.IsNullOrEmpty())
         {
             venueModel.VenueImage = venue.Venueimage
                 .Split([','], StringSplitOptions.RemoveEmptyEntries)
@@ -49,9 +49,9 @@ public class VenueEditModel
                 .ToList();
         }
         
-        if (!string.IsNullOrWhiteSpace(venue.Addons))
+        if (!venue.Addons.IsNullOrEmpty())
         {
-            venueModel.Addons = venue.Addons
+            venueModel.Addons = venue.Addons!
                 .Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))

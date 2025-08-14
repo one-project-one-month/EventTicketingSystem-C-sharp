@@ -15,8 +15,8 @@ public class AdminEditModel
 
     public string? Email { get; set; }
 
-    public string? PhoneNo { get; set; } 
-    
+    public string? PhoneNo { get; set; }
+
     public string? ProfileImage { get; set; }
 
     public static AdminEditModel FromTblAdmin(TblAdmin admin)

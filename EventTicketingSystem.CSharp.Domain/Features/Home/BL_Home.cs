@@ -8,7 +8,7 @@ public class BL_Home
 
     public BL_Home(DA_Home dataAccess) => _dataAccess = dataAccess;
 
-    public async Task<Result<HomeResponseModels>> Home()
+    public async Task<Result<HomeResponseModel>> Home()
     { 
         var data = await _dataAccess.Home();
         return data;

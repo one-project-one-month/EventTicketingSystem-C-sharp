@@ -123,7 +123,7 @@ public class DA_Event : AuthorizationService
             eventModel.Venuetypename = item.Venuetypename;
             eventModel.Eventcategory = item.Categoryname;
 
-            if (!string.IsNullOrWhiteSpace(item.Addons))
+            if (!item.Addons.IsNullOrEmpty())
             {
                 eventModel.Addons = item.Addons
                     .Split([','], StringSplitOptions.RemoveEmptyEntries)
@@ -132,7 +132,7 @@ public class DA_Event : AuthorizationService
                     .ToList();
             }
 
-            if (!string.IsNullOrWhiteSpace(item.Venueimage))
+            if (!item.Venueimage.IsNullOrEmpty())
             {
                 eventModel.VenueImage = item.Venueimage
                     .Split([','], StringSplitOptions.RemoveEmptyEntries)

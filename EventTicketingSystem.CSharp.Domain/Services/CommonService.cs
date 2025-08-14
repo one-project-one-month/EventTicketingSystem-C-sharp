@@ -6,7 +6,9 @@ public class CommonService
     private readonly DapperService _dapper;
     private readonly ILogger<CommonService> _logger;
 
-    public CommonService(AppDbContext db, DapperService dapper, ILogger<CommonService> logger)
+    public CommonService(AppDbContext db,
+                         DapperService dapper,
+                         ILogger<CommonService> logger)
     {
         _db = db;
         _dapper = dapper;
@@ -110,7 +112,7 @@ public class CommonService
     {
         var sequence = await _db.TblSequences
                         .AsNoTracking()
-                        .Where(     
+                        .Where(
                             x => x.Uniquename == uniqueName &&
                             x.Sequencetype == EnumSequenceType.EventTicket.ToString() &&
                             x.Eventcode == eventCode &&

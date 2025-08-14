@@ -72,6 +72,7 @@ public class DA_Venue : AuthorizationService
             }
 
             model.Venue = VenueEditModel.FromTblVenue(venue);
+
             return Result<VenueEditResponseModel>.Success(model);
         }
         catch (Exception ex)
@@ -84,6 +85,7 @@ public class DA_Venue : AuthorizationService
     #endregion
 
     #region Create Venue
+
     public async Task<Result<VenueCreateResponseModel>> Create(VenueCreateRequestModel requestModel)
     {
         string imageLink = string.Empty;
@@ -138,6 +140,7 @@ public class DA_Venue : AuthorizationService
 
     public async Task<Result<VenueUpdateResponseModel>> Update(VenueUpdateRequestModel requestModel)
     {
+        string imageLink = string.Empty;
         string addons = string.Empty;
 
         if (requestModel.VenueCode.IsNullOrEmpty())
@@ -169,10 +172,18 @@ public class DA_Venue : AuthorizationService
                 addons = string.Join(",", requestModel.Addons.Select(a => a.Trim()));
             }
 
+            if (requestModel.VenueImage != null && requestModel.VenueImage.Count > 0)
+            {
+                var uploadResults = await EnumDirectory.VenueImage.UploadFilesAsync(requestModel.VenueImage);
+
+                imageLink = string.Join(",", uploadResults.Select(x => x.FilePath));
+            }
+
             existingVenue.Description = requestModel.Description;
             existingVenue.Address = requestModel.Address!;
             existingVenue.Facilities = requestModel.Facilities;
             existingVenue.Addons = addons;
+            existingVenue.Venueimage = imageLink;
             existingVenue.Modifiedby = CurrentUserId;
             existingVenue.Modifiedat = DateTime.Now;
 
@@ -226,7 +237,6 @@ public class DA_Venue : AuthorizationService
 
     #endregion
 
-
     #region Get Venue List For User
 
     public async Task<Result<VenueListResponseModeForUser>> UserVenueList(int pageNo)
@@ -263,7 +273,9 @@ public class DA_Venue : AuthorizationService
                                     .ToListAsync();
 
             if (!paginatedResult.ItemList.Any())
+            {
                 return Result<VenueListResponseModeForUser>.NotFoundError("No venue found.");
+            }
 
             var model = new VenueListResponseModeForUser
             {
@@ -286,6 +298,4 @@ public class DA_Venue : AuthorizationService
     }
 
     #endregion
-
-
 }
