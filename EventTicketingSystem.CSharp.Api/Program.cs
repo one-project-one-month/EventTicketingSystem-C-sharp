@@ -19,11 +19,19 @@ var builder = WebApplication.CreateBuilder(args);
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
 builder.Services.AddCors(options =>
 {
+    //options.AddPolicy("AllowedOrigins", policy =>
+    //{
+    //    policy.WithOrigins(allowedOrigins!)
+    //          .WithMethods("GET", "POST")
+    //          .WithHeaders("Content-Type", "Authorization");
+    //});
+
     options.AddPolicy("AllowedOrigins", policy =>
     {
-        policy.WithOrigins(allowedOrigins!)
-              .WithMethods("GET", "POST")
-              .WithHeaders("Content-Type", "Authorization");
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
 
