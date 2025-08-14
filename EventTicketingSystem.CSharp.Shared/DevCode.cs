@@ -173,7 +173,7 @@ public static partial class DevCode
         [CallerMemberName] string methodName = "")
     {
         var fileName = Path.GetFileName(filePath);
-        var message = $"File Name - {fileName} | Method Name - {methodName} | Error - {ex.ToJson()}";
+        var message = $"File Name - {fileName} | Method Name - {methodName} | Error - {ex.ToString()}";
         logger.LogCustomError(message);
     }
 
