@@ -45,7 +45,7 @@ public class EventDetailResponseModel
 
         if (!tblVenue.Venueimage.IsNullOrEmpty())
         {
-            eventModel.Venueimage = item.Venueimage
+            eventModel.Venueimage = tblVenue.Venueimage
                 .Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => x.Trim())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -70,8 +70,8 @@ public class EventDetailResponseModel
 public class TicketTypeDetail
 {
     public string? Tickettypecode { get; set; }
+
     public string? Tickettypename { get; set; }
+
     public decimal Ticketprice { get; set; }
 }
-
-
