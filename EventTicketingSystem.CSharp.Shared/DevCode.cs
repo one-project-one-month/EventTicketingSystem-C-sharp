@@ -226,7 +226,8 @@ public static partial class DevCode
             throw new Exception("Error: No files were uploaded.");
         }
 
-        var wwwrootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
+        var wwwrootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+        //var wwwrootPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, EnumDirectory.wwwroot.ToString());
         var directoryPath = Path.Combine(wwwrootPath, directory.ToString());
         if (!Directory.Exists(directoryPath))
         {
