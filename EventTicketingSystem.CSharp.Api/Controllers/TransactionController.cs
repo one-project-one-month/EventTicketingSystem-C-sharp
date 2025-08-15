@@ -3,7 +3,7 @@
 [Tags("Transaction")]
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+//[Authorize]
 public class TransactionController : ControllerBase
 {
     private readonly BL_Transaction _blTransaction;
