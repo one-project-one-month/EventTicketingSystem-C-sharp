@@ -20,54 +20,27 @@ public class DA_SearchEventsAndVenues
                                 e => EF.Functions.ILike(e.Eventname!, "%" + searchTerm + "%") &&
                                 e.Deleteflag == false
                             )
-            .Select(e => new SearchEventResponseModel
-            {
-                Eventid = e.Eventid,
-                Eventcode = e.Eventcode,
-                Eventname = e.Eventname,
-                Categorycode = e.Eventcategorycode,
-                Startdate = e.Startdate,
-                Enddate = e.Enddate,
-                Isactive = e.Isactive,
-                Eventstatus = e.Eventcode,
-                Businessownercode = e.Businessownercode,
-                Totalticketquantity = e.Totalticketquantity,
-                Soldoutcount = e.Soldoutcount,
-                Createdby = e.Createdby,
-                Createdat = e.Createdat,
-                Modifiedby = e.Modifiedby,
-                Modifiedat = e.Modifiedat
-            })
-            .ToListAsync();
+                            .Join(_db.TblVenues,
+                            ev => ev.Venuecode,
+                            ve => ve.Venuecode,
+                            (ev, ve) => new {ev,ve})
+                            .ToListAsync();
 
             var VenueResult = await _db.TblVenues
                             .Where(
                                 v => EF.Functions.ILike(v.Venuename!, "%" + searchTerm + "%") &&
                                 v.Deleteflag == false
                             )
-                .Select(v => new SearchVenuesResponseModel
-                {
-                    Venueid = v.Venueid,
-                    Venuecode = v.Venuecode,
-                    Venuename = v.Venuename,
-                    //Venuedetailcode = v.Venuedetailcode,
-                    Venuetypecode = v.Venuetypecode,
-                    Venuedescription = v.Description,
-                    Venueaddress = v.Address,
-                    Venuecapacity = v.Capacity,
-                    Venuefacilities = v.Facilities,
-                    Venueaddons = v.Addons,
-                    Createdby = v.Createdby,
-                    Createdat = v.Createdat,
-                    Modifiedby = v.Modifiedby,
-                    Modifiedat = v.Modifiedat
-                })
-                .ToListAsync();
+                            .Join(_db.TblVenuetypes,
+                            ve => ve.Venuetypecode,
+                            vt =>  vt.Venuetypecode,
+                            (ve, vt) => new {ve,vt})
+                            .ToListAsync();
 
             var SearchResult = new SearchListEventsAndVenuesResponseModel
             {
-                Events = EventResult,
-                Venues = VenueResult
+                Events = EventResult.Select(x => SearchEventResponseModel.FromTbl(x.ev, x.ve)).ToList(),
+                Venues = VenueResult.Select(x => SearchVenuesResponseModel.FromTbl(x.ve, x.vt)).ToList(),
             };
 
             var eventsData = SearchResult.Events.Count();
@@ -90,7 +63,6 @@ public class DA_SearchEventsAndVenues
     {
         try
         {
-            // Add day 1 to include 23:59:59 on the original EndDate
             //var nextDay = Enddate.AddDays(1);
             
             var startUtc = DateTime.SpecifyKind(Startdate.Date, DateTimeKind.Utc);
@@ -102,29 +74,15 @@ public class DA_SearchEventsAndVenues
                     e.Enddate < endUtc &&
                     e.Deleteflag == false
                 )
-                .Select(e => new SearchEventResponseModel
-                {
-                    Eventid = e.Eventid,
-                    Eventcode = e.Eventcode,
-                    Eventname = e.Eventname,
-                    Categorycode = e.Eventcategorycode,
-                    Startdate = e.Startdate,
-                    Enddate = e.Enddate,
-                    Isactive = e.Isactive,
-                    Eventstatus = e.Eventstatus,
-                    Businessownercode = e.Businessownercode,
-                    Totalticketquantity = e.Totalticketquantity,
-                    Soldoutcount = e.Soldoutcount,
-                    Createdby = e.Createdby,
-                    Createdat = e.Createdat,
-                    Modifiedby = e.Modifiedby,
-                    Modifiedat = e.Modifiedat
-                })
+                .Join(_db.TblVenues,
+                ev => ev.Venuecode,
+                ve => ve.Venuecode,
+                (ev, ve) => new { ev, ve})
                 .ToListAsync();
 
             var SearchResult = new SearchListEventsResponseModel
             {
-                Events = EventResult
+                Events = EventResult.Select(x => SearchEventResponseModel.FromTbl(x.ev, x.ve)).ToList(),
             };
 
             if (EventResult.Count == 0)
@@ -141,55 +99,45 @@ public class DA_SearchEventsAndVenues
         }
     }
 
-    public async Task<Result<SearchListEventsByAmountResponseModel>> SearchEventsByAmountAsync(decimal FromAmount, decimal ToAmount)
+    public async Task<Result<SearchListEventsResponseModel>> SearchEventsByAmountAsync(decimal FromAmount, decimal ToAmount)
     {
         try
         {
-            var searchResult = new SearchListEventsByAmountResponseModel
-            {
-                Events = (
+            var events = (
                         from tp in _db.TblTicketprices
                         join tt in _db.TblTickettypes on tp.Tickettypecode equals tt.Tickettypecode
                         join e in _db.TblEvents on tt.Eventcode equals e.Eventcode
+                        join ve in _db.TblVenues on e.Venuecode equals ve.Venuecode
                         where tp.Ticketprice >= FromAmount
                               && tp.Ticketprice <= ToAmount
                               && tp.Deleteflag == false
-                              && tt.Deleteflag == false 
+                              && tt.Deleteflag == false
                               && e.Deleteflag == false
-                        select new SearchEventByAmountResponseModel
+                        select new
                         {
-                            Eventid = e.Eventid,
-                            Eventcode = e.Eventcode,
-                            Eventname = e.Eventname,
-                            Categorycode = e.Eventcategorycode,
-                            Startdate = e.Startdate,
-                            Enddate = e.Enddate,
-                            Isactive = e.Isactive,
-                            Eventstatus = e.Eventstatus,
-                            Businessownercode = e.Businessownercode,
-                            Totalticketquantity = e.Totalticketquantity,
-                            Soldoutcount = e.Soldoutcount,
-                            Createdby = e.Createdby,
-                            Createdat = e.Createdat,
-                            Modifiedby = e.Modifiedby,
-                            Modifiedat = e.Modifiedat
+                            events = e,
+                            venue = ve
                         }
                     )
-                    .Distinct() 
-                    .ToList()
+                    .Distinct()
+                    .ToList();
+
+            var searchResult = new SearchListEventsResponseModel
+            {
+                Events = events.Select(x=> SearchEventResponseModel.FromTbl(x.events, x.venue)).ToList(),
             };
 
             if (searchResult.Events.Count == 0)
             {
-                return Result<SearchListEventsByAmountResponseModel>.NotFoundError("No events found matching the search Amount.");
+                return Result<SearchListEventsResponseModel>.NotFoundError("No events found matching the search Amount.");
             }
 
-            return Result<SearchListEventsByAmountResponseModel>.Success(searchResult);
+            return Result<SearchListEventsResponseModel>.Success(searchResult);
         }
         catch (Exception ex)
         {
             _logger.LogExceptionError(ex);
-            return Result<SearchListEventsByAmountResponseModel>.SystemError(ex.Message);
+            return Result<SearchListEventsResponseModel>.SystemError(ex.Message);
         }
     }
 }

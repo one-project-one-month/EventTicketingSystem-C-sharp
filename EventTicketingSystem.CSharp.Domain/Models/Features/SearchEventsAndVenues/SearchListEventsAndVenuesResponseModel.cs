@@ -1,4 +1,6 @@
-﻿namespace EventTicketingSystem.CSharp.Domain.Models.Features.SearchEventsAndVenues;
+﻿using EventTicketingSystem.CSharp.Database.AppDbContext;
+
+namespace EventTicketingSystem.CSharp.Domain.Models.Features.SearchEventsAndVenues;
 
 public class SearchListEventsAndVenuesResponseModel
 {
@@ -9,70 +11,67 @@ public class SearchListEventsAndVenuesResponseModel
 
 public class SearchEventResponseModel
 {
-    public string? Eventid { get; set; }
+    public string Eventid { get; set; }
+    public string Eventcode { get; set; }
+    public string Eventname { get; set; }
+    public string Address { get; set; }
+    public List<string> Venueimage { get; set; }
 
-    public string? Eventcode { get; set; }
+    public static SearchEventResponseModel FromTbl (TblEvent ev, TblVenue ve)
+    {
+        var model = new SearchEventResponseModel
+        {
+            Eventid = ev.Eventid,
+            Eventcode = ev.Eventcode,
+            Eventname = ev.Eventname,
+            Address = ve.Address,
+            Venueimage = new List<string>()
+        };
 
-    public string? Eventname { get; set; }
-
-    public string? Categorycode { get; set; }
-
-    //public string? Description { get; set; }
-
-    //public string? Address { get; set; }
-
-    public DateTime? Startdate { get; set; }
-
-    public DateTime? Enddate { get; set; }
-
-    //public string? Eventimage { get; set; }
-
-    public bool? Isactive { get; set; }
-
-    public string? Eventstatus { get; set; }
-
-    public string? Businessownercode { get; set; }
-
-    public int? Totalticketquantity { get; set; }
-
-    public int? Soldoutcount { get; set; }
-
-    public string? Createdby { get; set; }
-
-    public DateTime? Createdat { get; set; }
-
-    public string? Modifiedby { get; set; }
-
-    public DateTime? Modifiedat { get; set; }
+        if (!ve.Venueimage.IsNullOrEmpty())
+        {
+            model.Venueimage = ve.Venueimage
+                .Split([','], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+        }
+        return model;
+    }
 }
 
 public class SearchVenuesResponseModel
 {
-    public string? Venueid { get; set; }
+    public string Venueid { get; set; }
+    public string Venuecode { get;set; }
+    public string Venuename { get; set; }
+    public string Venuetypename { get; set; }
+    public int Capacity { get; set; }
+    public List<string> Venueimage { get; set; }
+    public string Address { get; set; }
 
-    public string? Venuecode { get; set; }
+    public static SearchVenuesResponseModel FromTbl(TblVenue ve, TblVenuetype vt)
+    {
+        var model = new SearchVenuesResponseModel
+        {
+            Venueid = ve.Venueid,
+            Venuecode = ve.Venuecode,
+            Venuename = ve.Venuename,
+            Venuetypename = vt.Venuetypename,
+            Capacity = ve.Capacity,
+            Venueimage = new List<string>(),
+            Address = ve.Address,
+        };
 
-    public string? Venuename { get; set; }
+        if (!ve.Venueimage.IsNullOrEmpty())
+        {
+            model.Venueimage = ve.Venueimage
+                .Split([','], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+        }
 
-    //public string? Venuedetailcode { get; set; }
-
-    public string? Venuetypecode { get; set; }
-
-    public string? Venuedescription { get; set; }
-
-    public string? Venueaddress { get; set; }
-
-    public int? Venuecapacity { get; set; }
-
-    public string? Venuefacilities { get; set; }
-
-    public string? Venueaddons { get; set; }
-
-    public string? Createdby { get; set; }
-
-    public DateTime? Createdat { get; set; }
-
-    public string? Modifiedby { get; set; }
-
-    public DateTime? Modifiedat { get; set; }
+        return model;
+    }
 }

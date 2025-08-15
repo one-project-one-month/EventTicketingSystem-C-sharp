@@ -19,7 +19,7 @@ public class BL_SearchEventsAndVenues
         return await _da_SearchEventsAndVenues.SearchEventsByDate(StartDate, EndDate);
     }
 
-    public async Task<Result<SearchListEventsByAmountResponseModel>> SearchEventsByAmountAsync(decimal FromAmount, decimal ToAmount)
+    public async Task<Result<SearchListEventsResponseModel>> SearchEventsByAmountAsync(decimal FromAmount, decimal ToAmount)
     {
         return await _da_SearchEventsAndVenues.SearchEventsByAmountAsync(FromAmount, ToAmount);
     }
