@@ -179,7 +179,7 @@ public class DA_Transaction : AuthorizationService
                                         WHERE ""eventcode"" = {0} 
                                           AND ""deleteflag"" = false 
                                           AND ""isactive"" = true
-                                          AND (""eventstatus"" = 'Ongoing' OR ""eventstatus"" = 'UpComing')
+                                          AND (""eventstatus"" = 'Ongoing' OR ""eventstatus"" = 'Upcoming')
                                         FOR UPDATE SKIP LOCKED
                                         LIMIT 1", requestModel.EventCode)
                                     .FirstOrDefaultAsync();
@@ -287,7 +287,7 @@ public class DA_Transaction : AuthorizationService
             var actualFilePathList = new List<string>();
             foreach (var filePath in qrFilePathList)
             {
-                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), EnumDirectory.QrImage.ToString());
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory());
                 if (!Directory.Exists(uploadPath))
                 {
                     Directory.CreateDirectory(uploadPath);

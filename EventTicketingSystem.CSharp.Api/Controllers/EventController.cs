@@ -50,7 +50,7 @@ public class EventController : ControllerBase
     }
 
     [HttpPost("Create")]
-    [Authorize]
+    //[Authorize]
     public async Task<IActionResult> Create(EventCreateRequestModel requestModel)
     {
         var data = await _blEvent.Create(requestModel);

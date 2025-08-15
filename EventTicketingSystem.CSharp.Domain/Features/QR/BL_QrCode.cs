@@ -25,7 +25,7 @@ public class BL_QrCode
         }
 
         string fileName = requestModel.TicketCode + QR_IMAGE_FILE_EXTENSION;
-        string outputFileName = Path.Combine(QR_DIR_NAME, fileName);
+        string outputFileName = Path.Combine("wwwroot", QR_DIR_NAME, fileName);
 
         SaveQrImage(response.Data.QrString, outputFileName);
 
