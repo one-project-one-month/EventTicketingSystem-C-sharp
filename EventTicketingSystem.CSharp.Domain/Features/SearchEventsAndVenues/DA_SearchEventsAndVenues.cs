@@ -91,33 +91,36 @@ public class DA_SearchEventsAndVenues
         try
         {
             // Add day 1 to include 23:59:59 on the original EndDate
-            var nextDay = Enddate.AddDays(1);
+            //var nextDay = Enddate.AddDays(1);
+            
+            var startUtc = DateTime.SpecifyKind(Startdate.Date, DateTimeKind.Utc);
+            var endUtc   = DateTime.SpecifyKind(Enddate.Date.AddDays(1), DateTimeKind.Utc);
 
             var EventResult = await _db.TblEvents
-                            .Where(
-                                e => e.Startdate >= Startdate &&
-                                e.Startdate <= nextDay &&
-                                e.Deleteflag == false
-                            )
-                            .Select(e => new SearchEventResponseModel
-                            {
-                                Eventid = e.Eventid,
-                                Eventcode = e.Eventcode,
-                                Eventname = e.Eventname,
-                                Categorycode = e.Eventcategorycode,
-                                Startdate = e.Startdate,
-                                Enddate = e.Enddate,
-                                Isactive = e.Isactive,
-                                Eventstatus = e.Eventstatus,
-                                Businessownercode = e.Businessownercode,
-                                Totalticketquantity = e.Totalticketquantity,
-                                Soldoutcount = e.Soldoutcount,
-                                Createdby = e.Createdby,
-                                Createdat = e.Createdat,
-                                Modifiedby = e.Modifiedby,
-                                Modifiedat = e.Modifiedat
-                            })
-                            .ToListAsync();
+                .Where(e =>
+                    e.Startdate >= startUtc &&
+                    e.Enddate < endUtc &&
+                    e.Deleteflag == false
+                )
+                .Select(e => new SearchEventResponseModel
+                {
+                    Eventid = e.Eventid,
+                    Eventcode = e.Eventcode,
+                    Eventname = e.Eventname,
+                    Categorycode = e.Eventcategorycode,
+                    Startdate = e.Startdate,
+                    Enddate = e.Enddate,
+                    Isactive = e.Isactive,
+                    Eventstatus = e.Eventstatus,
+                    Businessownercode = e.Businessownercode,
+                    Totalticketquantity = e.Totalticketquantity,
+                    Soldoutcount = e.Soldoutcount,
+                    Createdby = e.Createdby,
+                    Createdat = e.Createdat,
+                    Modifiedby = e.Modifiedby,
+                    Modifiedat = e.Modifiedat
+                })
+                .ToListAsync();
 
             var SearchResult = new SearchListEventsResponseModel
             {
@@ -142,36 +145,18 @@ public class DA_SearchEventsAndVenues
     {
         try
         {
-            var TicketPriceResult = await _db.TblTicketprices
-                                .Where(
-                                    tp => tp.Ticketprice >= FromAmount &&
-                                    tp.Ticketprice <= ToAmount &&
-                                    tp.Deleteflag == false
-                                )
-                                .Select(tp => new SearchTicketPriceResponseModel
-                                {
-                                    Ticketpriceid = tp.Ticketpriceid,
-                                    Ticketpricecode = tp.Ticketpricecode,
-                                    //Eventcode = tp.Eventcode,
-                                    Tickettypecode = tp.Tickettypecode,
-                                    Ticketprice = tp.Ticketprice,
-                                    Ticketquantity = tp.Ticketquantity,
-                                    Createdby = tp.Createdby,
-                                    Createdat = tp.Createdat,
-                                    Modifiedby = tp.Modifiedby,
-                                    Modifiedat = tp.Modifiedat
-                                })
-                                .ToListAsync();
-            var EventCodes = TicketPriceResult.Select(tp => tp.Eventcode).Distinct().ToList();
-
-            var SearchResult = new SearchListEventsByAmountResponseModel
+            var searchResult = new SearchListEventsByAmountResponseModel
             {
-                Events = _db.TblEvents
-                        .Where(
-                            e => EventCodes.Contains(e.Eventcode) &&
-                            e.Deleteflag == false
-                        )
-                        .Select(e => new SearchEventByAmountResponseModel
+                Events = (
+                        from tp in _db.TblTicketprices
+                        join tt in _db.TblTickettypes on tp.Tickettypecode equals tt.Tickettypecode
+                        join e in _db.TblEvents on tt.Eventcode equals e.Eventcode
+                        where tp.Ticketprice >= FromAmount
+                              && tp.Ticketprice <= ToAmount
+                              && tp.Deleteflag == false
+                              && tt.Deleteflag == false 
+                              && e.Deleteflag == false
+                        select new SearchEventByAmountResponseModel
                         {
                             Eventid = e.Eventid,
                             Eventcode = e.Eventcode,
@@ -188,17 +173,18 @@ public class DA_SearchEventsAndVenues
                             Createdat = e.Createdat,
                             Modifiedby = e.Modifiedby,
                             Modifiedat = e.Modifiedat
-                        })
-                        .ToList(),
-                //TicketPrice = TicketPriceResult
+                        }
+                    )
+                    .Distinct() 
+                    .ToList()
             };
 
-            if (SearchResult.Events.Count == 0)
+            if (searchResult.Events.Count == 0)
             {
                 return Result<SearchListEventsByAmountResponseModel>.NotFoundError("No events found matching the search Amount.");
             }
 
-            return Result<SearchListEventsByAmountResponseModel>.Success(SearchResult);
+            return Result<SearchListEventsByAmountResponseModel>.Success(searchResult);
         }
         catch (Exception ex)
         {
