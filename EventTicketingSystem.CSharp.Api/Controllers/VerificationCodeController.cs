@@ -21,11 +21,11 @@ public class VerificationCodeController : ControllerBase
         return Ok(await _vcService.List());
     }
 
-    [HttpGet("Get/{vcId}")]
+    [HttpGet("Get/{vcCode}")]
     [Authorize]
-    public async Task<IActionResult> GetById(string vcId)
+    public async Task<IActionResult> GetById(string vcCode)
     {
-        return Ok(await _vcService.GetById(vcId));
+        return Ok(await _vcService.GetByCode(vcCode));
     }
 
     [HttpGet("GetByEmail/{email}")]

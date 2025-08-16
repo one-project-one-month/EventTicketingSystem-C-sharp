@@ -23,7 +23,7 @@ public class DashboardCount
 
 public class DashboardTTCount
 {
-    public string TicketCountPeriod { get; set; }
+    public TTCountType TicketCountPeriod { get; set; }
     public List<TTCount> TTCounts { get; set; }
 }
 
@@ -37,4 +37,10 @@ public class DashboardTicketSale
 {
     public string Month { get; set; }
     public int TotalCount { get; set; }
+}
+
+public enum TTCountType
+{
+    Week,
+    Month
 }

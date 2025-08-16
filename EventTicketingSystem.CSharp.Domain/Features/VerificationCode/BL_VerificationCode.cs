@@ -14,9 +14,9 @@ public class BL_VerificationCode
         return await _daService.List();
     }
 
-    public async Task<Result<VCResponseModel>> GetById(string vcId)
+    public async Task<Result<VCResponseModel>> GetByCode(string vcCode)
     {
-        return await _daService.GetVerificationCodeById(vcId);
+        return await _daService.GetVerificationCodeByCode(vcCode);
     }
 
     public async Task<Result<VCResponseModel>> GetByEmail(string email)
