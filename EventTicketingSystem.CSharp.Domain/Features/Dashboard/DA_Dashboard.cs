@@ -53,11 +53,12 @@ public class DA_Dashboard
             var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek);
             var endOfWeek = startOfWeek.AddDays(7).AddSeconds(-1);
             var ticketTypeWeek = await (
-                from tt in _db.TblTickettypes
-                where !tt.Deleteflag && tt.Createdat >= startOfWeek && tt.Createdat <= endOfWeek
-                join tp in _db.TblTicketprices.Where(x => !x.Deleteflag) on tt.Tickettypecode equals tp.Tickettypecode
-                join t in _db.TblTickets.Where(x => !x.Deleteflag) on tp.Ticketpricecode equals t.Ticketpricecode
-                group t by tt.Tickettypename into g
+                from ttt in _db.TblTransactiontickets
+                where !ttt.Deleteflag && ttt.Createdat >= startOfWeek && ttt.Createdat <= endOfWeek
+                join t in _db.TblTickets.Where(x => !x.Deleteflag) on ttt.Ticketcode equals t.Ticketcode
+                join tp in _db.TblTicketprices.Where(x => !x.Deleteflag) on t.Ticketpricecode equals tp.Ticketpricecode
+                join tt in _db.TblTickettypes.Where(x => !x.Deleteflag) on tp.Tickettypecode equals tt.Tickettypecode
+                group ttt by tt.Tickettypename into g
                 orderby g.Count() descending
                 select new TTCount
                 {
@@ -68,11 +69,12 @@ public class DA_Dashboard
 
             // Ticket Type Count - Month
             var ticketTypeMonth = await (
-                from tt in _db.TblTickettypes
-                where !tt.Deleteflag && tt.Createdat >= firstDayOfThisMonth && tt.Createdat <= now
-                join tp in _db.TblTicketprices.Where(x => !x.Deleteflag) on tt.Tickettypecode equals tp.Tickettypecode
-                join t in _db.TblTickets.Where(x => !x.Deleteflag) on tp.Ticketpricecode equals t.Ticketpricecode
-                group t by tt.Tickettypename into g
+                from ttt in _db.TblTransactiontickets
+                where !ttt.Deleteflag && ttt.Createdat >= firstDayOfThisMonth && ttt.Createdat <= now
+                join t in _db.TblTickets.Where(x => !x.Deleteflag) on ttt.Ticketcode equals t.Ticketcode
+                join tp in _db.TblTicketprices.Where(x => !x.Deleteflag) on t.Ticketpricecode equals tp.Ticketpricecode
+                join tt in _db.TblTickettypes.Where(x => !x.Deleteflag) on tp.Tickettypecode equals tt.Tickettypecode
+                group ttt by tt.Tickettypename into g
                 orderby g.Count() descending
                 select new TTCount
                 {
@@ -97,12 +99,13 @@ public class DA_Dashboard
 
             // Ticket Sales by month (successful transactions only, Jan-Dec current year)
             var currentYear = now.Year;
-            var salesByMonth = await (
+            var transactionTicketsByMonth = await (
                 from tr in _db.TblTransactions
                 where !tr.Deleteflag
-                      && tr.Status == "success"
+                      && tr.Status.ToLower() == "success"
                       && tr.Transactiondate.Year == currentYear
-                group tr by tr.Transactiondate.Month into g
+                join ttt in _db.TblTransactiontickets.Where(x => !x.Deleteflag) on tr.Transactioncode equals ttt.Transactioncode
+                group ttt by tr.Transactiondate.Month into g
                 select new
                 {
                     Month = g.Key,
@@ -114,7 +117,7 @@ public class DA_Dashboard
                 .Select(m => new DashboardTicketSale
                 {
                     Month = new DateTime(currentYear, m, 1).ToString("MMM"),
-                    TotalCount = salesByMonth.FirstOrDefault(x => x.Month == m)?.TotalCount ?? 0
+                    TotalCount = transactionTicketsByMonth.FirstOrDefault(x => x.Month == m)?.TotalCount ?? 0
                 })
                 .ToList();
 
