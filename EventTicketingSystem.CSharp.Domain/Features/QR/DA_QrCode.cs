@@ -25,18 +25,18 @@ public class DA_QrCode
         }
 
         string qrString = $"{ticketInfo.EventCode}" +
-            $"|{ticketInfo.EventName}" +
+            $"|{(ticketInfo.EventName).Replace(" ","_")}" +
             $"|{DateOnly.FromDateTime((DateTime)ticketInfo.StartDate)}" +
             $"|{ticketInfo.StartDate}" +
             $"|{ticketInfo.EndDate}" +
             $"|GateOpenTime" +
             $"|{requestModel.TicketCode}" +
             $"|{ticketInfo.TicketPrice}" +
-            $"|{ticketInfo.TicketTypeName}" +
-            $"|{requestModel.FullName}" +
+            $"|{ticketInfo.TicketTypeName.Replace(" ", "_")}" +
+            $"|{requestModel.FullName.Replace(" ", "_")}" +
             $"|{requestModel.Email}" +
-            $"|{ticketInfo.VenueName}"+
-            $"|{ticketInfo.Address}";
+            $"|{ticketInfo.VenueName.Replace(" ", "_")}"+
+            $"|{ticketInfo.Address.Replace(" ", "_")}";
 
         response.QrString = qrString;
 
@@ -63,7 +63,7 @@ public class DA_QrCode
 
 
         response.EventCode = qrParts[0];
-        response.EventName = qrParts[1];
+        response.EventName = qrParts[1].Replace("_", " ");
         response.EventDate = qrParts[2];
         response.EventTimeFrom = qrParts[3];
         var gateOpenTime = response.EventTimeFrom.ToDateTime();
@@ -72,11 +72,11 @@ public class DA_QrCode
         response.GateOpenTime = getDateTime?.ToString("hh:mm tt")!;
         response.TicketCode = qrParts[6];
         response.TicketPrice = qrParts[7];
-        response.TicketType = qrParts[8];
-        response.FullName = qrParts[9];
+        response.TicketType = qrParts[8].Replace("_", " ");
+        response.FullName = qrParts[9].Replace("_", " ");
         response.Email = qrParts[10];
-        response.Location = qrParts.Length > 11 ? qrParts[11] : string.Empty;
-        response.Address = qrParts.Length > 12 ? qrParts[12] : string.Empty;
+        response.Location = qrParts.Length > 11 ? qrParts[11].Replace("_", " ") : string.Empty;
+        response.Address = qrParts.Length > 12 ? qrParts[12].Replace("_", " ") : string.Empty;
 
         return Result<QrCheckResponseModel>.Success(response);
     }
