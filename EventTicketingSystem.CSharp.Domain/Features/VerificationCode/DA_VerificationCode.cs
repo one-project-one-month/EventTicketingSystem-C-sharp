@@ -76,12 +76,12 @@ public class DA_VerificationCode : AuthorizationService
 
     #region Get Verification Code By Id
 
-    public async Task<Result<VCResponseModel>> GetVerificationCodeById(string vcId)
+    public async Task<Result<VCResponseModel>> GetVerificationCodeByCode(string vcCode)
     {
         var responseModel = new Result<VCResponseModel>();
         var model = new VCResponseModel();
 
-        if (vcId is null)
+        if (vcCode is null)
         {
             return Result<VCResponseModel>.ValidationError("Id can't be null here.");
         }
@@ -90,13 +90,13 @@ public class DA_VerificationCode : AuthorizationService
         {
             var data = await _db.TblVerifications
                         .FirstOrDefaultAsync(
-                            x => x.Verificationid == vcId &&
+                            x => x.Verificationcode == vcCode &&
                             x.Deleteflag == false
                         );
 
             if (data is null)
             {
-                return Result<VCResponseModel>.NotFoundError($"Verification Code with Id: {vcId} is not found!");
+                return Result<VCResponseModel>.NotFoundError($"Verification Code with Id: {vcCode} is not found!");
             }
 
             model.VerificationCode = VCodeModel.FromTblVerification(data);
