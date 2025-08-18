@@ -71,7 +71,14 @@ public class DA_Venue : AuthorizationService
                 return Result<VenueEditResponseModel>.NotFoundError("No venue found.");
             }
 
+            var venueType = await _db.TblVenuetypes.FirstOrDefaultAsync(x => x.Venuetypecode == venue.Venuetypecode);
+            if (venueType is null)
+            {
+                return Result<VenueEditResponseModel>.NotFoundError("No Venue Type found.");
+            }
+
             model.Venue = VenueEditModel.FromTblVenue(venue);
+            model.Venue.VenueTypeCode = venueType.Venuetypename;
 
             return Result<VenueEditResponseModel>.Success(model);
         }
