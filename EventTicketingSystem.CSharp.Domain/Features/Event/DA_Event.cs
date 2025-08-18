@@ -194,9 +194,43 @@ public class DA_Event : AuthorizationService
         {
             return Result<EventCreateResponseModel>.ValidationError("Is active is required");
         }
+        if (requestModel.Startdate > requestModel.Enddate)
+        {
+            return Result<EventCreateResponseModel>.ValidationError("Start date cannot be greater than end date.");
+        }
 
         try
         {
+            var venueDetail = await _db.TblVenues
+                .FirstOrDefaultAsync(x => x.Venuecode == requestModel.Venuecode && x.Deleteflag == false);
+            if (venueDetail is null)
+            {
+                return Result<EventCreateResponseModel>.NotFoundError("Venue not found.");
+            }
+            if (requestModel.Totalticketquantity > venueDetail.Capacity)
+            {
+                return Result<EventCreateResponseModel>.ValidationError(
+                    "Total ticket quantity cannot be greater than venue capacity.");
+            }
+
+            var existingEvents = await _db.TblEvents
+                                .Where(
+                                    x => x.Venuecode == requestModel.Venuecode && 
+                                    x.Deleteflag == false)
+                                .ToListAsync();
+            if (existingEvents.Any())
+            {
+                bool isOverlapping = existingEvents.Any(ev =>
+                    requestModel.Startdate <= ev.Enddate &&
+                    requestModel.Enddate >= ev.Startdate);
+
+                if (isOverlapping)
+                {
+                    return Result<EventCreateResponseModel>.ValidationError(
+                        "Event already exists for the selected venue in the given date range.");
+                }
+            }
+
             var newEvent = new TblEvent()
             {
                 Eventid = GenerateUlid(),
@@ -209,7 +243,7 @@ public class DA_Event : AuthorizationService
                 Totalticketquantity = requestModel.Totalticketquantity,
                 Startdate = requestModel.Startdate,
                 Enddate = requestModel.Enddate,
-                Isactive = true,
+                Isactive = requestModel.Isactive,
                 Eventstatus = EnumEventStatus.Upcoming.ToString(),
                 Soldoutcount = 0,
                 Createdby = CurrentUserId,
