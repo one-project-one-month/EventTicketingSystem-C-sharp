@@ -29,6 +29,10 @@ public class DA_User_Event
                 ev => ev.Venuecode,
                 ve => ve.Venuecode,
                 (ev, ve) => new { ev, ve })
+                .Where(
+                    x => (x.ev.Eventstatus == EnumEventStatus.Upcoming.ToString() || 
+                    x.ev.Eventstatus == EnumEventStatus.Ongoing.ToString()) && 
+                    x.ev.Isactive == true)
                 .OrderByDescending(x => x.ev.Soldoutcount)
                 .Take(3)
                 .ToListAsync();
@@ -38,6 +42,10 @@ public class DA_User_Event
                 ev => ev.Venuecode,
                 ve => ve.Venuecode,
                 (ev, ve) => new { ev, ve })
+                .Where(
+                    x => (x.ev.Eventstatus == EnumEventStatus.Upcoming.ToString() ||
+                    x.ev.Eventstatus == EnumEventStatus.Ongoing.ToString()) &&
+                    x.ev.Isactive == true)
                 .OrderByDescending(x => x.ev.Eventid);
 
             var paginationList = await eventList.ToPaginatedList(pagination);
