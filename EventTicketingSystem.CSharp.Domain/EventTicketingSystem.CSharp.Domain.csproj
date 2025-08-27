@@ -7,6 +7,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <EmbeddedResource Include="Features\Report\EventReport.rdlc">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\EventTicketingSystem.CSharp.Database\EventTicketingSystem.CSharp.Database.csproj" />
 		<ProjectReference Include="..\EventTicketingSystem.CSharp.Shared\EventTicketingSystem.CSharp.Shared.csproj" />
 	</ItemGroup>
@@ -14,6 +20,7 @@
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+		<PackageReference Include="BoldReports.Net.Core" Version="10.1.19" />
 		<PackageReference Include="ClosedXML" Version="0.105.0" />
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
 		<PackageReference Include="Dapper" Version="2.1.66" />
@@ -25,10 +32,26 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.17" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.3" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+		<PackageReference Include="ReportViewerCore.NETCore" Version="15.1.26" />
 		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
 		<PackageReference Include="SkiaSharp" Version="3.119.0" />
 		<PackageReference Include="Ulid" Version="1.3.4" />
 		<PackageReference Include="ZXing.Net" Version="0.16.10" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Features\Report\EventReportDataSet.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>EventReportDataSet.xsd</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Features\Report\EventReportDataSet.xsd">
+	    <Generator>MSDataSetGenerator</Generator>
+	    <LastGenOutput>EventReportDataSet.Designer.cs</LastGenOutput>
+	  </None>
 	</ItemGroup>
 
 </Project>

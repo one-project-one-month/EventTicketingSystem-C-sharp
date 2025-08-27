@@ -1,3 +1,6 @@
+using EventTicketingSystem.CSharp.Domain.Features.Report;
+using EventTicketingSystem.CSharp.Domain.Services.ReportContracts;
+
 namespace EventTicketingSystem.CSharp.Domain;
 
 public static class FeaturesManager
@@ -66,6 +69,7 @@ public static class FeaturesManager
         services.AddScoped<EmailService>();
         services.AddScoped<ExportService>();
         services.AddScoped<JwtService>();
+        services.AddScoped<ReportFactory>();
 
         return services;
     }
