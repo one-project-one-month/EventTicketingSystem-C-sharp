@@ -19,13 +19,13 @@ public class SearchEventResponseModel
 
     //public string? Description { get; set; }
 
-    //public string? Address { get; set; }
+    public string? Address { get; set; }
 
     public DateTime? Startdate { get; set; }
 
     public DateTime? Enddate { get; set; }
 
-    //public string? Eventimage { get; set; }
+    public List<string> Venueimage { get; set; } = new();
 
     public bool? Isactive { get; set; }
 
@@ -58,11 +58,19 @@ public class SearchVenuesResponseModel
 
     public string? Venuetypecode { get; set; }
 
+    public string? Venuetypename { get; set; }
+
     public string? Venuedescription { get; set; }
 
     public string? Venueaddress { get; set; }
 
+    public string? Address { get; set; }
+
     public int? Venuecapacity { get; set; }
+
+    public int? Capacity { get; set; }
+
+    public List<string> Venueimage { get; set; } = new();
 
     public string? Venuefacilities { get; set; }
 

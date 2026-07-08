@@ -16,55 +16,39 @@ public class SearchEventsAndVenuesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult SearchEventsAndVenues(string searchTerm)
+    public async Task<IActionResult> SearchEventsAndVenues(string searchTerm)
     {
         if (string.IsNullOrEmpty(searchTerm))
         {
             return BadRequest("Search term cannot be null or empty.");
         }
 
-        var result = _bl_SearchEventsAndVenues.SearchEventsAndVenues(searchTerm).Result;
-
-        if (result.IsError)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, result.Message);
-        }
-
+        var result = await _bl_SearchEventsAndVenues.SearchEventsAndVenues(searchTerm);
         return Ok(result);
     }
 
     //[HttpGet("{StartDate, EndDate}")]
     [HttpGet("BetweenDate")]
-    public IActionResult SearchEventsByDate(DateTime StartDate, DateTime EndDate)
+    public async Task<IActionResult> SearchEventsByDate(DateTime StartDate, DateTime EndDate)
     {
         if (StartDate.IsNullOrEmpty())
         {
             return BadRequest("Search date cannot be null or empty.");
         }
 
-        var result = _bl_SearchEventsAndVenues.SearchEventsByDate(StartDate, EndDate).Result;
-
-        if (result.IsError)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, result.Message);
-        }
+        var result = await _bl_SearchEventsAndVenues.SearchEventsByDate(StartDate, EndDate);
         return Ok(result);
     }
 
     [HttpGet("BetweenAmount")]
-    public IActionResult SearchEventsByAmount(decimal FromAmount, decimal ToAmount)
+    public async Task<IActionResult> SearchEventsByAmount(decimal FromAmount, decimal ToAmount)
     {
         if (FromAmount <= 0 || ToAmount <= 0)
         {
             return BadRequest("Search amount cannot be less than or equal to zero.");
         }
 
-        var result = _bl_SearchEventsAndVenues.SearchEventsByAmountAsync(FromAmount, ToAmount).Result;
-
-        if (result.IsError)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, result.Message);
-        }
+        var result = await _bl_SearchEventsAndVenues.SearchEventsByAmountAsync(FromAmount, ToAmount);
         return Ok(result);
     }
 }

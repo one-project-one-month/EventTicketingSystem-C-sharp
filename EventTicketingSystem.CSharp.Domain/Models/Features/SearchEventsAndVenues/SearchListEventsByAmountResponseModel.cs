@@ -25,6 +25,8 @@ public class SearchEventByAmountResponseModel
 
     public string? Eventimage { get; set; }
 
+    public List<string> Venueimage { get; set; } = new();
+
     public bool? Isactive { get; set; }
 
     public string? Eventstatus { get; set; }
