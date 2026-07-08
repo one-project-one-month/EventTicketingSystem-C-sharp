@@ -76,7 +76,7 @@ public class DA_Event : AuthorizationService
                 join b in _db.TblBusinessowners on e.Businessownercode equals b.Businessownercode
                 join v in _db.TblVenues on e.Venuecode equals v.Venuecode
                 join vt in _db.TblVenuetypes on v.Venuetypecode equals vt.Venuetypecode
-                where e.Deleteflag == false
+                where e.Deleteflag == false && e.Eventcode == eventCode
                 orderby e.Eventid descending
                 select new
                 {
@@ -86,7 +86,7 @@ public class DA_Event : AuthorizationService
                     vt.Venuetypename
                 }).ToListAsync();
             
-            if (item is null)
+            if (!item.Any())
             {
                 return Result<EventEditResponseModel>.NotFoundError("No event found.");
             }
@@ -181,6 +181,8 @@ public class DA_Event : AuthorizationService
             {
                 Eventid = GenerateUlid(),
                 Eventcode = await _commonService.GenerateSequenceCode(EnumTableUniqueName.Tbl_Event),
+                Description = await _db.TblVenues.Where(x => x.Venuecode == requestModel.Venuecode).Select(x => x.Description ?? string.Empty).FirstOrDefaultAsync() ?? string.Empty,
+                Address = await _db.TblVenues.Where(x => x.Venuecode == requestModel.Venuecode).Select(x => x.Address).FirstOrDefaultAsync() ?? string.Empty,
                 Eventname = requestModel.Eventname,
                 Uniquename = requestModel.Uniquename,
                 Eventcategorycode = requestModel.Eventcategorycode,
@@ -226,12 +228,27 @@ public class DA_Event : AuthorizationService
                 return Result<EventUpdateResponseModel>.NotFoundError("Event Not Found.");
             }
 
-            item.Eventname = requestModel.EventName;
-            item.Startdate = requestModel.Startdate;
-            item.Enddate = requestModel.Enddate;
+            if (!requestModel.EventName.IsNullOrEmpty())
+            {
+                item.Eventname = requestModel.EventName;
+            }
+            if (requestModel.Startdate != default)
+            {
+                item.Startdate = requestModel.Startdate;
+            }
+            if (requestModel.Enddate != default)
+            {
+                item.Enddate = requestModel.Enddate;
+            }
             item.Isactive = requestModel.Isactive;
-            item.Eventstatus = requestModel.Eventstatus;
-            item.Totalticketquantity = requestModel.Totalticketquantity;
+            if (!requestModel.Eventstatus.IsNullOrEmpty())
+            {
+                item.Eventstatus = requestModel.Eventstatus;
+            }
+            if (requestModel.Totalticketquantity > 0)
+            {
+                item.Totalticketquantity = requestModel.Totalticketquantity;
+            }
             item.Modifiedby = CurrentUserId;
             item.Modifiedat = DateTime.Now;
             _db.Entry(item).State = EntityState.Modified;
@@ -282,6 +299,151 @@ public class DA_Event : AuthorizationService
             _logger.LogExceptionError(ex);
             return Result<EventDeleteResponseModel>.SystemError(ex.Message);
         }
+    }
+
+    #endregion
+
+    #region User Events
+
+    public async Task<Result<UserEventListResponseModel>> UserEvents(int pageNo)
+    {
+        const int pageSize = 9;
+        pageNo = pageNo <= 0 ? 1 : pageNo;
+
+        try
+        {
+            var query =
+                from evt in _db.TblEvents
+                join venue in _db.TblVenues on evt.Venuecode equals venue.Venuecode
+                where evt.Deleteflag == false && venue.Deleteflag == false && evt.Isactive
+                orderby evt.Startdate
+                select new
+                {
+                    evt.Eventcode,
+                    evt.Eventname,
+                    venue.Address,
+                    venue.Venueimage
+                };
+
+            var total = await query.CountAsync();
+            var rows = await query.Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
+            var topRows = await query.Take(3).ToListAsync();
+
+            var model = new UserEventListResponseModel
+            {
+                EventList = rows.Select(x => new UserEventListModel
+                {
+                    Eventcode = x.Eventcode,
+                    Eventname = x.Eventname,
+                    Address = x.Address,
+                    Venueimage = SplitCsv(x.Venueimage)
+                }).ToList(),
+                Top3Events = topRows.Select(x => new UserEventListModel
+                {
+                    Eventcode = x.Eventcode,
+                    Eventname = x.Eventname,
+                    Address = x.Address,
+                    Venueimage = SplitCsv(x.Venueimage)
+                }).ToList(),
+                TotalRowCount = total,
+                PageNo = pageNo,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(total / (double)pageSize)
+            };
+
+            return Result<UserEventListResponseModel>.Success(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<UserEventListResponseModel>.SystemError(ex.Message);
+        }
+    }
+
+    public async Task<Result<UserEventDetailResponseModel>> UserEventDetails(string eventCode)
+    {
+        try
+        {
+            var detail = await (
+                from evt in _db.TblEvents
+                join venue in _db.TblVenues on evt.Venuecode equals venue.Venuecode
+                where evt.Deleteflag == false && venue.Deleteflag == false && evt.Eventcode == eventCode
+                select new
+                {
+                    evt.Eventcode,
+                    evt.Eventname,
+                    evt.Startdate,
+                    evt.Enddate,
+                    venue.Venuename,
+                    venue.Description,
+                    venue.Address,
+                    venue.Capacity,
+                    venue.Facilities,
+                    venue.Addons,
+                    venue.Venueimage
+                }).FirstOrDefaultAsync();
+
+            if (detail is null)
+            {
+                return Result<UserEventDetailResponseModel>.NotFoundError("Event not found.");
+            }
+
+            var ticketTypes = await (
+                from type in _db.TblTickettypes
+                join price in _db.TblTicketprices on type.Tickettypecode equals price.Tickettypecode
+                where type.Deleteflag == false && price.Deleteflag == false && type.Eventcode == eventCode
+                select new UserEventTicketTypeModel
+                {
+                    Tickettypecode = type.Tickettypecode,
+                    Tickettypename = type.Tickettypename,
+                    Ticketprice = price.Ticketprice
+                }).ToListAsync();
+
+            var model = new UserEventDetailResponseModel
+            {
+                Eventcode = detail.Eventcode,
+                Eventname = detail.Eventname,
+                Startdate = detail.Startdate,
+                Enddate = detail.Enddate,
+                Venuename = detail.Venuename,
+                Description = detail.Description ?? string.Empty,
+                Address = detail.Address,
+                Capacity = detail.Capacity,
+                Facilities = detail.Facilities ?? string.Empty,
+                Addons = detail.Addons ?? string.Empty,
+                Venueimage = SplitCsv(detail.Venueimage),
+                TicketTypes = ticketTypes
+            };
+
+            return Result<UserEventDetailResponseModel>.Success(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<UserEventDetailResponseModel>.SystemError(ex.Message);
+        }
+    }
+
+    public Result<EventStatusOptionsResponseModel> EventStatusOptions()
+    {
+        var options = Enum.GetNames<EnumEventStatus>()
+            .Select(x => new EventStatusOptionModel { Value = x, Label = x })
+            .ToList();
+
+        return Result<EventStatusOptionsResponseModel>.Success(new EventStatusOptionsResponseModel
+        {
+            EventStatusOptions = options
+        });
+    }
+
+    private static List<string> SplitCsv(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? new List<string>()
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
     }
 
     #endregion

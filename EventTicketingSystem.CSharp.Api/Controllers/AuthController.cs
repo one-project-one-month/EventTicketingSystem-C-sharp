@@ -40,6 +40,20 @@ public class AuthController : ControllerBase
         
         return Ok(result);
     }
+
+    [HttpPost("ChangePasswordFirstLogin")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ChangePasswordFirstLogin([FromBody] FirstTimeChangePasswordRequestModel request)
+    {
+        var result = await _blAuth.ChangePasswordFirstLogin(request);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
     
     [HttpPost("Logout")]
     [Authorize]

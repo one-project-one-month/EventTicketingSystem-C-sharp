@@ -3,13 +3,11 @@
 public class CommonService
 {
     private readonly AppDbContext _db;
-    private readonly DapperService _dapper;
     private readonly ILogger<CommonService> _logger;
 
-    public CommonService(AppDbContext db, DapperService dapper, ILogger<CommonService> logger)
+    public CommonService(AppDbContext db, ILogger<CommonService> logger)
     {
         _db = db;
-        _dapper = dapper;
         _logger = logger;
     }
 
@@ -48,7 +46,6 @@ public class CommonService
     public async Task<string> GenerateSequenceCode(EnumTableUniqueName uniqueName)
     {
         var sequence = await _db.TblSequences
-                        .AsNoTracking()
                         .Where(
                             x => x.Uniquename == uniqueName.GetEnumDescription() &&
                             x.Sequencetype == EnumSequenceType.Table.ToString() &&
@@ -61,12 +58,7 @@ public class CommonService
         }
 
         var sequnceCode = $"{sequence.Uniquename}";
-
-        var param = new { id = sequence.Sequenceid };
-
-        string? seqNo = await _dapper.QueryStoredProcedureFirstOrDefault<string>(Queries.sp_sequencecode, param);
-
-        string sequenceNo = seqNo ?? throw new Exception("Sequence not found.");
+        string sequenceNo = await IncrementSequence(sequence);
 
         sequnceCode += sequenceNo;
 
@@ -80,7 +72,6 @@ public class CommonService
     public async Task<string> GenerateEventSequenceCode(string uniqueName, string eventCode)
     {
         var sequence = await _db.TblSequences
-                        .AsNoTracking()
                         .Where(
                             x => x.Uniquename == uniqueName &&
                             x.Sequencetype == EnumSequenceType.Event.ToString() &&
@@ -94,12 +85,7 @@ public class CommonService
         }
 
         var sequenceCode = $"{sequence.Uniquename}";
-
-        var param = new { id = sequence.Sequenceid };
-
-        string? seqNo = await _dapper.QueryStoredProcedureFirstOrDefault<string>(Queries.sp_sequencecode, param);
-
-        string sequenceNo = seqNo ?? throw new Exception("Sequence not found.");
+        string sequenceNo = await IncrementSequence(sequence);
 
         sequenceCode += sequenceNo;
 
@@ -113,7 +99,6 @@ public class CommonService
     public async Task<string> GenerateTransactionSequenceCode(string uniqueName, string eventCode)
     {
         var sequence = await _db.TblSequences
-                        .AsNoTracking()
                         .Where(
                             x => x.Uniquename == uniqueName &&
                             x.Sequencetype == EnumSequenceType.Transaction.ToString() &&
@@ -128,16 +113,21 @@ public class CommonService
 
         var date = $"{sequence.Sequencedate.Year}{sequence.Sequencedate.Month}{sequence.Sequencedate.Day}";
         var sequenceCode = $"{sequence.Uniquename}{date}";
-
-        var param = new { id = sequence.Sequenceid };
-
-        string? seqNo = await _dapper.QueryStoredProcedureFirstOrDefault<string>(Queries.sp_sequencecode, param);
-
-        string sequenceNo = seqNo ?? throw new Exception("Sequence not found.");
+        string sequenceNo = await IncrementSequence(sequence);
 
         sequenceCode += sequenceNo;
 
         return sequenceCode;
+    }
+
+    private async Task<string> IncrementSequence(TblSequence sequence)
+    {
+        var current = int.TryParse(sequence.Sequenceno, out var value) ? value : 0;
+        sequence.Sequenceno = (current + 1).ToString("D7");
+        _db.Entry(sequence).State = EntityState.Modified;
+        await _db.SaveAndDetachAsync();
+
+        return sequence.Sequenceno;
     }
 
     #endregion

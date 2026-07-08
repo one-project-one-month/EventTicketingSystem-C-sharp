@@ -9,5 +9,7 @@ public class LoginResponseModel
     public string RefreshToken { get; set; }
     
     public DateTime RefreshTokenExpiresAt  { get; set; }
+
+    public bool RequirePasswordChange { get; set; }
     
 }

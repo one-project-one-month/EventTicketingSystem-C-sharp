@@ -51,4 +51,20 @@ public class VenueController : ControllerBase
         var data = await _blVenue.Delete(venueCode);
         return Ok(data);
     }
+
+    [HttpGet("UserVenueList/{pageNo}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UserVenueList(int pageNo)
+    {
+        var data = await _blVenue.UserVenueList(pageNo);
+        return Ok(data);
+    }
+
+    [HttpGet("UserVenueDetail/{venueCode}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UserVenueDetail(string venueCode)
+    {
+        var data = await _blVenue.UserVenueDetail(venueCode);
+        return Ok(data);
+    }
 }

@@ -2,11 +2,8 @@
 EVENT TICKETING SYSTEM
 ```
 
-```
-Right Click Database > Open in Terminal
-
-dotnet ef dbcontext scaffold "Server=localhost;port=5432;Database=eventticketingsystem;User Id=postgres;Password=sasa@123;TrustServerCertificate=True;" Npgsql.EntityFrameworkCore.PostgreSQL -o AppDbContext -c AppDbContext -f
-```
+The API uses EF Core with SQLite. On first startup it creates `eventticketing.db`
+and seeds starter data automatically when the admin table is empty.
 
 user name - admin
-password - admin
+password - Admin@123

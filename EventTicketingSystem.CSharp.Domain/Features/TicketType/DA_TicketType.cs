@@ -5,17 +5,14 @@ public class DA_TicketType : AuthorizationService
     private readonly AppDbContext _db;
     private readonly ILogger _logger;
     private readonly CommonService _commonService;
-    private readonly string _connection;
 
     public DA_TicketType(IHttpContextAccessor httpContextAccessor,
                          AppDbContext db,
                          ILogger<DA_TicketType> logger,
-                         IConfiguration configuration,
                          CommonService commonService) : base(httpContextAccessor)
     {
         _db = db;
         _logger = logger;
-        _connection = configuration.GetConnectionString("DbConnection")!;
         _commonService = commonService;
     }
 
@@ -24,29 +21,27 @@ public class DA_TicketType : AuthorizationService
         var model = new TicketTypeListResponseModel();
         var responseModel = new Result<TicketTypeListResponseModel>();
 
-        string query = @"SELECT 
-            tt.tickettypecode,
-            tt.eventcode,
-            te.eventname,
-            tt.tickettypename,
-            tt.createdby,
-            tt.createdat,
-            tt.modifiedby,
-            tt.modifiedat,
-            tt.deleteflag,
-            tt.tickettypeid,
-            tp.ticketprice,
-            tp.ticketquantity
-        FROM tbl_tickettype tt
-        LEFT JOIN tbl_ticketprice tp ON tt.tickettypecode = tp.tickettypecode
-        LEFT JOIN tbl_event te ON te.eventcode = tt.eventcode
-        WHERE tt.deleteflag = false";
-
-        using IDbConnection dbConnection = new NpgsqlConnection(_connection);
-        dbConnection.Open();
-
-        var ticketTypeList = (await dbConnection.QueryAsync<TicketTypeListModel>(query)).ToList();
-        model.TicketTypeList = ticketTypeList;
+        model.TicketTypeList = await (
+            from tt in _db.TblTickettypes
+            join tp in _db.TblTicketprices on tt.Tickettypecode equals tp.Tickettypecode into prices
+            from tp in prices.DefaultIfEmpty()
+            join te in _db.TblEvents on tt.Eventcode equals te.Eventcode into events
+            from te in events.DefaultIfEmpty()
+            where tt.Deleteflag == false
+            select new TicketTypeListModel
+            {
+                TicketTypeId = tt.Tickettypeid,
+                TicketTypeCode = tt.Tickettypecode,
+                EventCode = tt.Eventcode,
+                EventName = te == null ? string.Empty : te.Eventname,
+                TicketTypeName = tt.Tickettypename,
+                Ticketprice = tp == null ? 0 : tp.Ticketprice,
+                TicketQuantity = tp == null ? 0 : tp.Ticketquantity,
+                CreatedBy = tt.Createdby,
+                CreatedAt = tt.Createdat,
+                ModifiedBy = tt.Modifiedby,
+                ModifiedAt = tt.Modifiedat
+            }).ToListAsync();
 
         responseModel = Result<TicketTypeListResponseModel>.Success(model, "Ticket types are retrieved successfullly!");
         return responseModel;
@@ -58,33 +53,27 @@ public class DA_TicketType : AuthorizationService
 
         try
         {
-            string query = @"
-                SELECT 
-                    tt.tickettypecode,
-                    tt.eventcode,
-                    te.eventname,
-                    tt.tickettypename,
-                    tt.createdby,
-                    tt.createdat,
-                    tt.modifiedby,
-                    tt.modifiedat,
-                    tt.deleteflag,
-                    tt.tickettypeid,
-                    tp.ticketprice,
-                    tp.ticketquantity
-               FROM tbl_tickettype tt
-               LEFT JOIN tbl_ticketprice tp ON tt.tickettypecode = tp.tickettypecode
-               LEFT JOIN tbl_event te ON te.eventcode = tt.eventcode
-               WHERE tt.deleteflag = false
-                  AND tt.tickettypecode = @TicketTypeCode";
-
-            using IDbConnection dbConnection = new NpgsqlConnection(_connection);
-            dbConnection.Open();
-
-            var tickettype = (await dbConnection.QueryAsync<TicketTypeEditModel>(query, new
-            {
-                TicketTypeCode = code
-            })).FirstOrDefault();
+            var tickettype = await (
+                from tt in _db.TblTickettypes
+                join tp in _db.TblTicketprices on tt.Tickettypecode equals tp.Tickettypecode into prices
+                from tp in prices.DefaultIfEmpty()
+                join te in _db.TblEvents on tt.Eventcode equals te.Eventcode into events
+                from te in events.DefaultIfEmpty()
+                where tt.Deleteflag == false && tt.Tickettypecode == code
+                select new TicketTypeEditModel
+                {
+                    TicketTypeId = tt.Tickettypeid,
+                    TicketTypeCode = tt.Tickettypecode,
+                    EventCode = tt.Eventcode,
+                    EventName = te == null ? string.Empty : te.Eventname,
+                    TicketTypeName = tt.Tickettypename,
+                    Ticketprice = tp == null ? 0 : tp.Ticketprice,
+                    TicketQuantity = tp == null ? 0 : tp.Ticketquantity,
+                    CreatedBy = tt.Createdby,
+                    CreatedAt = tt.Createdat,
+                    ModifiedBy = tt.Modifiedby,
+                    ModifiedAt = tt.Modifiedat
+                }).FirstOrDefaultAsync();
 
             model.TicketType = tickettype;
 

@@ -27,7 +27,7 @@ public static class FeaturesManager
     public static IServiceCollection AddBuilderServies(this IServiceCollection services, WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<AppDbContext>(
-                options => options.UseNpgsql(builder.Configuration.GetConnectionString("DbConnection"))
+                options => options.UseSqlite(builder.Configuration.GetConnectionString("DbConnection"))
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking),
                 ServiceLifetime.Transient,
                 ServiceLifetime.Transient
@@ -53,7 +53,6 @@ public static class FeaturesManager
     private static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
-        services.AddScoped<DapperService>();
         services.AddScoped<CommonService>();
         services.AddScoped<EmailService>();
         services.AddScoped<ExportService>();
@@ -72,10 +71,12 @@ public static class FeaturesManager
         services.AddScoped<BL_Dashboard>();
         services.AddScoped<BL_Event>();
         services.AddScoped<BL_EventCategory>();
+        services.AddScoped<BL_Home>();
         services.AddScoped<BL_QrCode>();
         services.AddScoped<BL_SearchEventsAndVenues>();
         services.AddScoped<BL_Ticket>();
         services.AddScoped<BL_TicketType>();
+        services.AddScoped<BL_Transaction>();
         services.AddScoped<BL_Venue>();
         services.AddScoped<BL_VenueType>();
         services.AddScoped<BL_VerificationCode>();
@@ -92,10 +93,12 @@ public static class FeaturesManager
         services.AddScoped<DA_Dashboard>();
         services.AddScoped<DA_Event>();
         services.AddScoped<DA_EventCategory>();
+        services.AddScoped<DA_Home>();
         services.AddScoped<DA_QrCode>();
         services.AddScoped<DA_SearchEventsAndVenues>();
         services.AddScoped<DA_Ticket>();
         services.AddScoped<DA_TicketType>();
+        services.AddScoped<DA_Transaction>();
         services.AddScoped<DA_Venue>();
         services.AddScoped<DA_VenueType>();
         services.AddScoped<DA_VerificationCode>();

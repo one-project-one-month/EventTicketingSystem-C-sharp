@@ -33,4 +33,19 @@ public class BL_Event
     {
         return await _daService.Delete(eventCode);
     }
+
+    public async Task<Result<UserEventListResponseModel>> UserEvents(int pageNo)
+    {
+        return await _daService.UserEvents(pageNo);
+    }
+
+    public async Task<Result<UserEventDetailResponseModel>> UserEventDetails(string eventCode)
+    {
+        return await _daService.UserEventDetails(eventCode);
+    }
+
+    public Result<EventStatusOptionsResponseModel> EventStatusOptions()
+    {
+        return _daService.EventStatusOptions();
+    }
 }

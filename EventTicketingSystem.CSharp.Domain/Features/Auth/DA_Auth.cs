@@ -26,6 +26,12 @@ public class DA_Auth
         await _db.SaveChangesAsync();
     }
 
+    public async Task UpdateUser(TblAdmin admin)
+    {
+        _db.TblAdmins.Update(admin);
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<TblLogin?> GetUserByRefreshToken(string refreshToken)
     {
         return await _db.TblLogins.FirstOrDefaultAsync(x => x.Refreshtoken == refreshToken);

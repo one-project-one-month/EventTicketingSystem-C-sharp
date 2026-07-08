@@ -219,4 +219,108 @@ public class DA_Venue : AuthorizationService
     }
 
     #endregion
+
+    #region User Venues
+
+    public async Task<Result<UserVenueListResponseModel>> UserVenueList(int pageNo)
+    {
+        const int pageSize = 9;
+        pageNo = pageNo <= 0 ? 1 : pageNo;
+
+        try
+        {
+            var query =
+                from venue in _db.TblVenues
+                join venueType in _db.TblVenuetypes on venue.Venuetypecode equals venueType.Venuetypecode
+                where venue.Deleteflag == false && venueType.Deleteflag == false
+                orderby venue.Createdat descending
+                select new
+                {
+                    venue.Venuecode,
+                    venue.Venuetypecode,
+                    venueType.Venuetypename,
+                    venue.Venuename,
+                    venue.Capacity,
+                    venue.Address,
+                    venue.Venueimage
+                };
+
+            var total = await query.CountAsync();
+            var rows = await query.Skip((pageNo - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            var model = new UserVenueListResponseModel
+            {
+                VenueList = rows.Select(x => new UserVenueListModel
+                {
+                    VenueCode = x.Venuecode,
+                    VenueTypeCode = x.Venuetypecode,
+                    Venuetypename = x.Venuetypename,
+                    VenueName = x.Venuename,
+                    Capacity = x.Capacity,
+                    Address = x.Address,
+                    Venueimage = SplitCsv(x.Venueimage)
+                }).ToList(),
+                TotalRowCount = total,
+                PageNo = pageNo,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(total / (double)pageSize)
+            };
+
+            return Result<UserVenueListResponseModel>.Success(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<UserVenueListResponseModel>.SystemError(ex.Message);
+        }
+    }
+
+    public async Task<Result<UserVenueDetailResponseModel>> UserVenueDetail(string venueCode)
+    {
+        try
+        {
+            var venue = await _db.TblVenues
+                .FirstOrDefaultAsync(x => x.Venuecode == venueCode && x.Deleteflag == false);
+
+            if (venue is null)
+            {
+                return Result<UserVenueDetailResponseModel>.NotFoundError("Venue not found.");
+            }
+
+            var model = new UserVenueDetailResponseModel
+            {
+                Venue = new UserVenueDetailModel
+                {
+                    VenueCode = venue.Venuecode,
+                    VenueTypeCode = venue.Venuetypecode,
+                    VenueName = venue.Venuename,
+                    Capacity = venue.Capacity,
+                    Address = venue.Address,
+                    Description = venue.Description ?? string.Empty,
+                    Addons = SplitCsv(venue.Addons),
+                    Facilities = venue.Facilities ?? string.Empty,
+                    VenueImage = SplitCsv(venue.Venueimage)
+                }
+            };
+
+            return Result<UserVenueDetailResponseModel>.Success(model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogExceptionError(ex);
+            return Result<UserVenueDetailResponseModel>.SystemError(ex.Message);
+        }
+    }
+
+    private static List<string> SplitCsv(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? new List<string>()
+            : value.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+    }
+
+    #endregion
 }

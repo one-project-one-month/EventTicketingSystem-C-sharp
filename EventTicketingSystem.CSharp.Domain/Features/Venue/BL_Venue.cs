@@ -33,4 +33,14 @@ public class BL_Venue
     {
         return await _dataAccess.Delete(venueCode);
     }
+
+    public async Task<Result<UserVenueListResponseModel>> UserVenueList(int pageNo)
+    {
+        return await _dataAccess.UserVenueList(pageNo);
+    }
+
+    public async Task<Result<UserVenueDetailResponseModel>> UserVenueDetail(string venueCode)
+    {
+        return await _dataAccess.UserVenueDetail(venueCode);
+    }
 }

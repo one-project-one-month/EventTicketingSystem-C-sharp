@@ -266,6 +266,9 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# Local SQLite database generated on first API startup
+EventTicketingSystem.CSharp.Api/eventticketing.db*
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout

@@ -4,21 +4,42 @@ public class DA_QrCode
 {
     private readonly ILogger<DA_QrCode> _logger;
     private readonly AppDbContext _db;
-    private readonly DapperService _dapper;
 
-    public DA_QrCode(ILogger<DA_QrCode> logger, AppDbContext db, DapperService dapper)
+    public DA_QrCode(ILogger<DA_QrCode> logger, AppDbContext db)
     {
         _logger = logger;
         _db = db;
-        _dapper = dapper;
     }
 
     public async Task<Result<QrGenerateResponseModel>> GenerateQr(QrGenerateRequestModel requestModel)
     {
         var response = new QrGenerateResponseModel();
 
-        var param = new { p_ticketcode = requestModel.TicketCode };
-        var ticketInfo = await _dapper.QueryStoredProcedureFirstOrDefault<QrGenerateModel>(Queries.sp_ticket_info, param);
+        var ticketInfo = await (
+            from ticket in _db.TblTickets
+            join price in _db.TblTicketprices on ticket.Ticketpricecode equals price.Ticketpricecode
+            join type in _db.TblTickettypes on price.Tickettypecode equals type.Tickettypecode
+            join evt in _db.TblEvents on type.Eventcode equals evt.Eventcode
+            join venue in _db.TblVenues on evt.Venuecode equals venue.Venuecode
+            where ticket.Ticketcode == requestModel.TicketCode
+                  && ticket.Deleteflag == false
+                  && price.Deleteflag == false
+                  && type.Deleteflag == false
+                  && evt.Deleteflag == false
+                  && venue.Deleteflag == false
+            select new QrGenerateModel
+            {
+                TicketPriceCode = price.Ticketpricecode,
+                TicketPrice = price.Ticketprice,
+                TicketTypeCode = type.Tickettypecode,
+                TicketTypeName = type.Tickettypename,
+                EventCode = evt.Eventcode,
+                StartDate = evt.Startdate,
+                EndDate = evt.Enddate,
+                EventName = evt.Eventname,
+                VenueName = venue.Venuename,
+                Address = venue.Address
+            }).FirstOrDefaultAsync();
 
         if (ticketInfo == null)
         {
@@ -26,8 +47,8 @@ public class DA_QrCode
             return Result<QrGenerateResponseModel>.SystemError("Ticket information not found for the provided ticket code.");
         }
 
-        string qrString = $"{ticketInfo.EventCode}" +
-            $"|{ticketInfo.EventName}" +
+        string qrString = $"{ticketInfo.EventName}" +
+            $"|{ticketInfo.EventCode}" +
             $"|{DateOnly.FromDateTime((DateTime)ticketInfo.StartDate)}" +
             $"|{ticketInfo.StartDate}" +
             $"|{ticketInfo.EndDate}" +
@@ -37,7 +58,8 @@ public class DA_QrCode
             $"|{ticketInfo.TicketTypeName}" +
             $"|{requestModel.FullName}" +
             $"|{requestModel.Email}" +
-            $"|{ticketInfo.VenueName}";
+            $"|{ticketInfo.VenueName}" +
+            $"|{ticketInfo.Address}";
 
         response.QrString = qrString;
 
@@ -56,12 +78,13 @@ public class DA_QrCode
         }
 
         var qrParts = qrString.Split('|');
-        if (qrParts.Length < 10)
+        if (qrParts.Length < 11)
         {
             _logger.LogError("Invalid QR string format.");
             return Result<QrCheckResponseModel>.SystemError("Invalid QR string format.");
         }
 
+        response.QrString = qrString;
         response.EventName = qrParts[0];
         response.EventCode = qrParts[1];
         response.EventDate = qrParts[2];

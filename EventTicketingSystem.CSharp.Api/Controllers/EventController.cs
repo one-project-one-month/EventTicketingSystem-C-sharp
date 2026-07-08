@@ -51,4 +51,28 @@ public class EventController : ControllerBase
         var data = await _blEvent.Delete(eventCode);
         return Ok(data);
     }
+
+    [HttpGet("UserEvents/{pageNo}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UserEvents(int pageNo)
+    {
+        var data = await _blEvent.UserEvents(pageNo);
+        return Ok(data);
+    }
+
+    [HttpGet("UserEventDetails/{eventCode}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UserEventDetails(string eventCode)
+    {
+        var data = await _blEvent.UserEventDetails(eventCode);
+        return Ok(data);
+    }
+
+    [HttpGet("EventStatusOptions")]
+    [AllowAnonymous]
+    public IActionResult EventStatusOptions()
+    {
+        var data = _blEvent.EventStatusOptions();
+        return Ok(data);
+    }
 }

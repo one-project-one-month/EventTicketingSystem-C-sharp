@@ -90,6 +90,8 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+await DatabaseSeeder.SeedAsync(app.Services);
+
 app.UseSwagger();
 app.UseSwaggerUI();
 

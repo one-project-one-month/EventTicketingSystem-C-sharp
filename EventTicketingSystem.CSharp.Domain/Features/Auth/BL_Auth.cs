@@ -77,8 +77,39 @@ public class BL_Auth
             Token = token,
             TokenExpiresAt = DateTime.Now.AddMinutes(_jwtSettings.TokenExpiryMinutes),
             RefreshToken = refreshToken,
-            RefreshTokenExpiresAt = refreshTokenExpiresAt
+            RefreshTokenExpiresAt = refreshTokenExpiresAt,
+            RequirePasswordChange = user.Isfirsttime
         }, "Login succeeded.");
+    }
+
+    public async Task<Result<string>> ChangePasswordFirstLogin(FirstTimeChangePasswordRequestModel request)
+    {
+        var user = await _daAuth.GetUserByUsername(request.Username);
+
+        if (user == null || user.Deleteflag)
+        {
+            return Result<string>.ValidationError("Invalid username or password.");
+        }
+
+        var currentPasswordHash = request.CurrentPassword.HashPassword(user.Username);
+        if (user.Password != currentPasswordHash)
+        {
+            return Result<string>.ValidationError("Invalid username or password.");
+        }
+
+        if (request.NewPassword.IsNullOrEmpty() || request.NewPassword.Length < 8)
+        {
+            return Result<string>.ValidationError("New password must be at least 8 characters.");
+        }
+
+        user.Password = request.NewPassword.HashPassword(user.Username);
+        user.Isfirsttime = false;
+        user.Modifiedby = "SYSTEM";
+        user.Modifiedat = DateTime.Now;
+
+        await _daAuth.UpdateUser(user);
+
+        return Result<string>.Success("Password changed successfully.");
     }
 
     public async Task<Result<RefreshTokenResponseModel>> RefreshToken(RefreshTokenRequestModel request)
